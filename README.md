@@ -2,6 +2,8 @@
 
 This is a collection of my personal homelab setup, with the explicit goal of documentation and holding the configurations for my k3s cluster and hosting services, and the implicit goal of getting good at DevOps.
 
+This is inspired heavily by [Mischa van den Burg's homelab](https://github.com/Mischavandenburg/homelab) and also serves as my playground in preparation for getting my CKA cert.
+
 ## Hardware
 - HP Probook as control pane
 - Raspberry Pi 4 as worker node
