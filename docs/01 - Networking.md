@@ -13,3 +13,20 @@ I still use nginx just for the sake of practice, and will note in the future whi
 ## VPN
 
 I got a pretty good deal with surfshark, so I just use that for now via OpenVPN. Reference for setup [here](https://support.surfshark.com/hc/en-us/articles/360011051133-How-to-set-up-manual-OpenVPN-connection-using-Linux-Terminal). This isn't essential for the cluster to operate, given that cloudflared tunnels abstract a lot of the DNS process, but it's a nice to have. OpenVPN is setup directly on the machine as opposed to operating within the cluster.
+
+Additionally, the setup guide for surfshark doesn't register OpenVPN as a service, so here it is:
+
+```bash
+[Unit]
+Description=OpenVPN service
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/run/openvpn/openvpn.pid
+ExecStart=/usr/sbin/openvpn --config /etc/openvpn/server.conf
+ExecStop=/usr/sbin/openvpn --rmtun --config /etc/openvpn/server.conf
+
+[Install]
+WantedBy=multi-user.target
+```

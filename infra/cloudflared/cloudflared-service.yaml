@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflared-secret
-  namespace: networking
-stringData:
-  ## cloudflared tunnel token, run `cloudflared tunnel token <tunnel-name>` to get
-  token: ""
