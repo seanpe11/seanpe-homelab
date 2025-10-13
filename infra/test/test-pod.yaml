@@ -1,0 +1,11 @@
+## Simple pod to test connectivity + to hop into for fun/troubleshooting
+apiVersion: v1
+kind: Pod
+metadata:
+  name: connectivity-test
+spec:
+  containers:
+  - name: busybox
+    image: busybox:1.28
+    # This command just keeps the container running so we can exec into it
+    command: ["sleep", "3600"]
