@@ -19,7 +19,7 @@ spec:
       volumes:
       - name: nginx-conf
         configMap:
-          name: nginx-proxy-conf
+          name: nginx-configmap
 ---
 apiVersion: v1
 kind: Service
