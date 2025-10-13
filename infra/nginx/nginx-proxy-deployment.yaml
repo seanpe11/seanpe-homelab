@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-internal-proxy
+  namespace: networking
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: proxy.conf
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-proxy-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-internal-proxy-svc
+  namespace: networking
+spec:
+  selector:
+    app: nginx-internal-proxy # Make sure your Deployment has this label!
+  ports:
+    - port: 80
