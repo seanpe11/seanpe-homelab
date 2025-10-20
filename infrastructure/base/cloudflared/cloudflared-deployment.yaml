@@ -8,7 +8,7 @@ metadata:
   namespace: networking
 spec:
   replicas: 2
-  selectors:
+  selector:
     matchLabels:
       app: cloudflared
   template:
