@@ -1,3 +1,6 @@
+## Tunnel secret cmd:
+## cloudflared tunnel token <tunnel-name>
+## kubectl create secret generic tunnel-token-secret --from-literal=token=<TUNNEL_TOKEN>
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,31 +8,28 @@ metadata:
   namespace: networking
 spec:
   replicas: 2
-  selector:
-    matchLabels:
-      app: cloudflared
   template:
-    metadata:
-      labels:
-        app: cloudflared
     spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:latest
         args:
         - "tunnel"
-        - "--no-autoupdate"
+        - "--config"
+        - "/etc/cloudflared/config.yaml"
         - "run"
-        - "--token"
-        - "$(TUNNEL_TOKEN)" # This tells the process to get the token from an environment variable
         env:
         - name: TUNNEL_TOKEN
           valueFrom:
             secretKeyRef:
-              # This securely injects the token from our new secret
+              # This securely injects the token from the command listed above
               name: tunnel-token-secret
               key: token
-
-## Tunnel secret cmd:
-## cloudflared tunnel token <tunnel-name>
-## kubectl create secret generic tunnel-token-secret --from-literal=token=<TUNNEL_TOKEN>
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/cloudflared
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: cloudflared-config
