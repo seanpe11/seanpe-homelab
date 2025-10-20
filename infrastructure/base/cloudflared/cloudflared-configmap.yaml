@@ -12,6 +12,9 @@ data:
     ingress:
       # Rule for your Next.js portfolio site
       # It points to the 'portfolio-service' in the 'apps' namespace on port 80.
+      - hostname: portfolio.seanpe.io
+        service: http://seanpe-com-service.apps:80
+
       - hostname: seanpe.io
         service: http://seanpe-com-service.apps:80
 
