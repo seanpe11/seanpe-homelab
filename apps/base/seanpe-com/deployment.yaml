@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: web
+        image: seanpe11/seanpe-com:placeholder
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000

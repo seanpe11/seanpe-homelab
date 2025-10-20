@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: seanpe-com-service
+spec:
+  selector:
+    app: portfolio
+  ports:
+    - port: 80
+      targetPort: 3000
