@@ -1,0 +1,17 @@
+## simple pod for testing network connectivity
+# kubectl exec -it deployment/network-test-pod -n utils -- sh
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-test-pod
+spec:
+  replicas: 1 
+  template:
+    spec:
+      containers:
+      - name: tools
+        image: alpine/curl:latest
+        command: ["sleep", "infinity"] # keep pod alive indefinitely
+        securityContext:
+          capabilities:
+            add: ["NET_RAW"]
