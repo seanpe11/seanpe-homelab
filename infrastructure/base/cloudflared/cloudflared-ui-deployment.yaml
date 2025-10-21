@@ -1,0 +1,33 @@
+## Same as the locally managed tunnel, but configured to use the cloudflared dashboard to manage routes.
+## Cloudflared tunnels only support either being managed by the dashboard or through a local config file, can't do both.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Give it a distinct name
+  name: cloudflared-ui-deployment
+  namespace: networking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared-ui
+  template:
+    metadata:
+      labels:
+        app: cloudflared-ui
+    spec:
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args:
+        - "tunnel"
+        - "--no-autoupdate"
+        - "run"
+        - "--token"
+        - "$(TUNNEL_TOKEN)"
+        env:
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ui-tunnel-token-secret
+              key: token
