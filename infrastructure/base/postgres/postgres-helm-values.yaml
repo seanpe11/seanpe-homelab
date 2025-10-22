@@ -1,0 +1,10 @@
+auth:
+  existingSecret: "postgres-secret" # Tells Helm to use the Secret we just created
+  secretKeys:
+    postgresPasswordKey: "postgres-password" # Maps the key in our Secret
+  database: "homelab"
+primary:
+  persistence:
+    enabled: true
+    storageClass: "local-path" # k3s default
+    size: 10Gi
