@@ -2,29 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cloudflared-config
-  # This ConfigMap must be in the same namespace as your cloudflared Deployment.
   namespace: networking
 data:
-  # This key, 'config.yaml', will become a file inside the cloudflared pod.
   config.yaml: |
-    # The ingress block defines all your routing rules.
-    # The tunnel token is handled by the deployment's secret, so it's not needed here.
     ingress:
-      # Rule for your Next.js portfolio site
       - hostname: portfolio.seanpe.io
         service: http://seanpe-com-service.apps:80
-
-      - hostname: seanpe.io
-        service: http://seanpe-com-service.apps:80
-
-      # Rule to also handle the 'www' subdomain
-      - hostname: www.seanpe.io
-        service: http://seanpe-com-service.apps:80
-
-      # Rule for your future Quartz knowledge base
-      - hostname: notes.seanpe.io
-        service: http://quartz-service.apps:80
-
-      # A final, important catch-all rule. Any other traffic hitting your tunnel
-      # that doesn't match a rule above will get a 404 Not Found error.
       - service: http_status:404
