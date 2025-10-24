@@ -1,9 +1,12 @@
+# infrastructure/base/sources/bitnami.yaml
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: bitnami
-  namespace: flux-system # HelmRepository sources must be in the flux-system namespace
+  namespace: flux-system
 spec:
   interval: 30m
+  # --- THIS IS THE FIX ---
+  # We explicitly set the 'type' to 'oci' and use the OCI registry URL.
   type: oci
   url: oci://registry-1.docker.io/bitnamicharts
