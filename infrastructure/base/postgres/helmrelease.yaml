@@ -11,8 +11,16 @@ spec:
       version: "14.x.x"
       sourceRef:
         kind: HelmRepository
-        name: bitnami 
+        name: bitnami
         namespace: flux-system
-  valuesFrom:
-  - kind: ConfigMap
-    name: postgresql-helm-values
+  values:
+    auth:
+      existingSecret: "postgres-secret"
+      secretKeys:
+        postgresPasswordKey: "postgres-password"
+      database: "homelab"
+    primary:
+      persistence:
+        enabled: true
+        storageClass: "local-path"
+        size: 10Gi
