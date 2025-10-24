@@ -8,16 +8,21 @@ spec:
   chart:
     spec:
       chart: postgresql
-      # Use a recent, stable chart version. 15.x.x is a good choice.
-      version: "17.x.x"
+      # --- THE FIX #1: Use a chart version that packages Postgres 17 ---
+      version: "16.7.27"
       sourceRef:
         kind: HelmRepository
         name: bitnami
         namespace: flux-system
-  
+
   values:
-    # Explicitly override the image to use the exact version you want
-    # The rest of your configuration
+    # --- THE FIX #2: Explicitly use a known-good, free image for PG 17 ---
+    image:
+      registry: docker.io
+      repository: bitnami/postgresql
+      tag: "17.6.0-debian-12-r0" # A known-good tag for this app version
+
+    # --- The rest of your configuration stays the same ---
     auth:
       existingSecret: "postgres-secret"
       secretKeys:
