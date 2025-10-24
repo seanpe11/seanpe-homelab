@@ -5,4 +5,5 @@ metadata:
   namespace: flux-system # HelmRepository sources must be in the flux-system namespace
 spec:
   interval: 30m
-  url: https://charts.bitnami.com/bitnami
+  type: oci
+  url: oci://registry-1.docker.io/bitnamicharts
