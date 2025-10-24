@@ -8,12 +8,16 @@ spec:
   chart:
     spec:
       chart: postgresql
-      version: "18.x.x"
+      # Use a recent, stable chart version. 15.x.x is a good choice.
+      version: "17.x.x"
       sourceRef:
         kind: HelmRepository
         name: bitnami
         namespace: flux-system
+  
   values:
+    # Explicitly override the image to use the exact version you want
+    # The rest of your configuration
     auth:
       existingSecret: "postgres-secret"
       secretKeys:
