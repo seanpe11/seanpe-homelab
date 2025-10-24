@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: bitnami
+  namespace: flux-system # HelmRepository sources must be in the flux-system namespace
+spec:
+  interval: 30m
+  url: https://charts.bitnami.com/bitnami
+
