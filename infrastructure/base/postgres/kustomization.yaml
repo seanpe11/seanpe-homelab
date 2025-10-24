@@ -9,3 +9,14 @@ configMapGenerator:
   namespace: databases
   files:
   - values.yaml=helm-values.yaml 
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: postgresql-helm-values
+      version: v1
+    target:
+      kind: HelmRelease
+      name: postgresql
+      fieldPaths:
+      - spec.valuesFrom.0.name

@@ -16,15 +16,3 @@ spec:
   valuesFrom:
   - kind: ConfigMap
     name: postgresql-helm-values
-
-
-replacements:
-  - source:
-      kind: ConfigMap
-      name: postgresql-helm-values
-      version: v1
-    target:
-      kind: HelmRelease
-      name: postgresql
-      fieldPaths:
-      - spec.valuesFrom.0.name
