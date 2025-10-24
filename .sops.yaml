@@ -1,0 +1,7 @@
+# .sops.yaml
+# This file is used for SOPS, a way to encrypt secrets committed to git.
+creation_rules:
+  - path_regex: .*.yaml
+    encrypted_regex: ^(data|stringData)$
+    # age is a CLI tool that generates age encryption keys that are compatible with SOPS.
+    age: age134ru89e5tulkzwlltv7mfx8l54m22mehuancqxpr4csz3hcukf4s8mg4cy # MAKE SURE THIS IS A PUBLIC KEY
