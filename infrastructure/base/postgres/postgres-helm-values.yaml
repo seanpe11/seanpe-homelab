@@ -1,10 +1,13 @@
 auth:
-  existingSecret: "postgres-secret" # Tells Helm to use the Secret we just created
+  # Tell Postgres to use the secret we just created
+  existingSecret: "gitea-db-secret"
   secretKeys:
-    postgresPasswordKey: "postgres-password" # Maps the key in our Secret
-  database: "homelab"
+    # Map the key from our secret to the key Postgres expects
+    adminPasswordKey: "POSTGRES_PASSWORD"
+  # Pre-create the database Gitea will use
+  database: "gitea"
 primary:
   persistence:
     enabled: true
-    storageClass: "local-path" # k3s default
-    size: 10Gi
+    storageClass: "local-path"
+    size: 15Gi
