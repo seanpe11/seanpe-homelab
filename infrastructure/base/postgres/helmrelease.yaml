@@ -1,0 +1,16 @@
+kind: HelmRelease
+metadata:
+  name: postgresql
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: postgresql
+      version: "14.x.x"
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami 
+        namespace: flux-system
+  valuesFrom:
+  - kind: ConfigMap
+    name: postgresql-helm-values

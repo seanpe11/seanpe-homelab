@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - secret.yaml # The encrypted secret file
+  - helmrelease.yaml
+
+configMapGenerator:
+- name: postgresql-helm-values
+  files:
+  - values.yaml=helm-values.yaml 
