@@ -4,3 +4,4 @@ resources:
   - ../base/cloudflared
   - ../base/postgres
   - ../base/sources
+  - ../base/cpng-operator
