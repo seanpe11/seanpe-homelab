@@ -9,7 +9,7 @@ spec:
   bootstrap:
     initdb:
       secret:
-        name: postgres-superuser-secret # Points to our encrypted secret
+        name: postgres-secret # Points to our encrypted secret
 
   storage:
     size: "10Gi"
