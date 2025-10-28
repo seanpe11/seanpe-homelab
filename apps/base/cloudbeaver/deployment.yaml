@@ -4,9 +4,16 @@ metadata:
   name: cloudbeaver
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: cloudbeaver
   template:
+    metadata:
+      labels:
+        app: cloudbeaver
     spec:
       containers:
       - name: cloudbeaver
-        image: dbeaver/cloudbeaver
-          - containerPort: 8978
+        image: dbeaver/cloudbeaver:latest
+        ports:
+        - containerPort: 8978 
