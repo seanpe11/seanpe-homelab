@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure-db
+  namespace: flux-system
+spec:
+  interval: 5m
+  path: ./infrastructure/base/postgres
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn: # Ensure operator is installed first
+    - name: infrastructure-core

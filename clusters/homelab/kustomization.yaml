@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../infrastructure/production
+  - ./infrastructure-core.yaml
+  - ./infrastructure-db.yaml
   - ../../apps/production
   - ../../utils/production
