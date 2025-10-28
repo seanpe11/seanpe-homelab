@@ -20,11 +20,8 @@ spec:
     volumes:
       - name: cloudbeaver-data
         persistentVolumeClaim:
-          # This PVC will be automatically created and managed by the deployment.
           claimName: cloudbeaver-data-pvc
 ---
-# --- ADD THIS NEW OBJECT TO THE SAME FILE ---
-# This defines the PersistentVolumeClaim itself.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
