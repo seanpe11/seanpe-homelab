@@ -9,7 +9,7 @@ spec:
     initdb:
       secret:
         name: postgres-secret # Points to our encrypted secret
-        owner: postgres
+      owner: postgres
   storage:
     size: "10Gi"
     storageClass: "local-path"
