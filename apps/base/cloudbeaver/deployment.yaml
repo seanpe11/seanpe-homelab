@@ -17,3 +17,22 @@ spec:
         image: dbeaver/cloudbeaver:latest
         ports:
         - containerPort: 8978 
+    volumes:
+      - name: cloudbeaver-data
+        persistentVolumeClaim:
+          # This PVC will be automatically created and managed by the deployment.
+          claimName: cloudbeaver-data-pvc
+---
+# --- ADD THIS NEW OBJECT TO THE SAME FILE ---
+# This defines the PersistentVolumeClaim itself.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cloudbeaver-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "local-path" # Use the k3s default storage
+  resources:
+    requests:
+      storage: 256Mi
