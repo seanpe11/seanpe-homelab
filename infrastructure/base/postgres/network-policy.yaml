@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-access
+  namespace: databases
+spec:
+  # Apply this policy to all PostgreSQL pods in the 'databases' namespace
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    # --- RULE 1: Allow the CNPG Operator ---
+    # This rule follows the documentation's requirement for operator access.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              # From the namespace labeled 'cnpg-system'
+              name: cnpg-system
+      ports:
+        # On the required ports for management and health checks
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 5432
+    # --- RULE 2: Allow Your Applications ---
+    # This rule allows CloudBeaver (and later, Gitea) to connect.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              # From the namespace labeled 'apps'
+              name: apps
+      ports:
+        # On the required PostgreSQL port
+        - protocol: TCP
+          port: 5432

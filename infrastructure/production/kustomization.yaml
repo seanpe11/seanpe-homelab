@@ -1,8 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../base/namespaces/cnpg-namespace.yaml
-  - ../base/namespaces/databases-namespace.yaml
+  - ../base/namespaces
   - ../base/sources/cnpg.yaml
   - ../base/cnpg-operator
   - ../base/cloudflared
