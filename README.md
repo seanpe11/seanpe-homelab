@@ -6,9 +6,9 @@ This is inspired heavily by [Mischa van den Burg's homelab](https://github.com/M
 
 ## Hardware
 - HP Probook as control pane
-- Raspberry Pi 4 as worker node
-- Intel NUC as worker node
-- MacBook Pro as worker node
+- Raspberry Pi 4 as worker node (to add)
+- Intel NUC as worker node (to add)
+- MacBook Pro as worker node (might add)
 - Personal laptop as worker node (tainted/tolerated for gpu tasks like llms, high-compute, etc)
 
 ## Infrastructure
