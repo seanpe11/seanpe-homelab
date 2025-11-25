@@ -8,4 +8,4 @@ namespace: apps
 images:
   - name: seanpe11/seanpe-com
     newName: seanpe11/seanpe-com
-    newTag: "v1.0" 
+    newTag: "v1.0.2" 
