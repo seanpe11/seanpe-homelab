@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: seanpe-api
+spec:
+  selector:
+    app: seanpe-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

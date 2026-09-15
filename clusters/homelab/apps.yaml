@@ -10,5 +10,9 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  dependsOn: # Ensure infrastructure is installed first
-    - name: infrastructure-core
+  dependsOn:
+    - name: infrastructure-db   # seanpe-api needs Supabase's database and the seanpe_api role
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

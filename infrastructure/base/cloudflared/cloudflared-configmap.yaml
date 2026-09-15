@@ -1,3 +1,5 @@
+# Routes for tunnel seanpe-k8s-homelab (40691c86-e080-4053-b822-fb2927accf28).
+# A hostname also needs its DNS record: cloudflared tunnel route dns seanpe-k8s-homelab <hostname>
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +8,11 @@ metadata:
 data:
   config.yaml: |
     ingress:
+      - hostname: api.seanpe.io
+        service: http://seanpe-api.apps.svc.cluster.local:80
       - hostname: portfolio.seanpe.io
-        service: http://seanpe-com-service.apps:80
+        service: http://seanpe-com-service.apps.svc.cluster.local:80
+      # DNS record deliberately not created until Cloudflare Access protects it.
+      - hostname: supabase.seanpe.io
+        service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
       - service: http_status:404

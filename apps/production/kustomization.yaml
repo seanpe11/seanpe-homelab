@@ -2,10 +2,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base/seanpe-com
-  - ../base/cloudbeaver
+  - ../base/seanpe-api
 namespace: apps
 
 images:
   - name: seanpe11/seanpe-com
     newName: seanpe11/seanpe-com
-    newTag: "v1.0.2" 
+    newTag: "v1.0.2"
+  - name: seanpe11/seanpe-api
+    newTag: "4b3731e"   # seanpe11/seanpe-api@4b3731e — X-API-Key on writes

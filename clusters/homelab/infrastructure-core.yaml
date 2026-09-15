@@ -5,9 +5,12 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  # This points to an overlay that will install the operator
-  path: ./infrastructure/production
+  path: ./infrastructure/production   # namespaces, Helm sources, cloudflared
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

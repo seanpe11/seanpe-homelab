@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seanpe-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seanpe-api
+  template:
+    metadata:
+      labels:
+        app: seanpe-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: seanpe-api
+          image: seanpe11/seanpe-api   # tag pinned in kustomization.yaml
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ENVIRONMENT
+              value: production
+            - name: GIN_MODE
+              value: release
+            - name: DATABASE_URL   # role seanpe_api, search_path seanpe_api — see infrastructure/base/supabase
+              valueFrom:
+                secretKeyRef:
+                  name: seanpe-api
+                  key: DATABASE_URL
+            - name: API_KEY        # required by POST/PUT/DELETE as X-API-Key
+              valueFrom:
+                secretKeyRef:
+                  name: seanpe-api
+                  key: API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health        # pings Postgres
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:             # not /health: a Postgres outage shouldn't restart the API
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]

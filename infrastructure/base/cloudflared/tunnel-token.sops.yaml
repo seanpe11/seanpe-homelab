@@ -1,0 +1,24 @@
+# TUNNEL_TOKEN for cloudflared tunnel seanpe-k8s-homelab (40691c86-e080-4053-b822-fb2927accf28)
+apiVersion: v1
+kind: Secret
+metadata:
+    name: tunnel-token-secret
+    namespace: networking
+type: Opaque
+stringData:
+    token: ENC[AES256_GCM,data:tIa0EylwJqHF0gQpgLV+VhrwJiyuezwoYg6BnXW21hgonfYt3qKyiCZrxb71jXPEt7d16OKccYICVbyb0bdhTYh6pjMhYnxSTpEAdl3CTWthb0984rLIFMqxXgwvMYLzXGbusT+0H1w58/4eengRljhOkv6nMA0NUIoGzFFfCkfxdsX92S58RsY/c3oszvvkNv+SG7VkjPuqOq9luHJL3RUpw65DxzvLvnKxQ78c0go7Fz7k,iv:NyeptQGxmzZimNKv3LG1Mo3herKbn1MzxYmPRJQXing=,tag:I+llrm99bB/C7ItYGnnx4g==,type:str]
+sops:
+    age:
+        - recipient: age134ru89e5tulkzwlltv7mfx8l54m22mehuancqxpr4csz3hcukf4s8mg4cy
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhUU16Y05uQkxFSFN1VStZ
+            Zk9pdDBhTHZ3RDdEZTJIekllWTBJaktHc1hrCnM0d09TdjlmeDVBSGc1bFl4WFIw
+            YXJyQXBscVp2TkVFb05saWg2ZUpXNDgKLS0tIGd5OXM1RktDaVdvUUxvelRDblUv
+            ZjJCc3N0RDg4eklvZ2tnZ0RJT3lYUzAKUYpYmLgynrM+2EB7gk24z4rUX40X5h9+
+            1QeVCJfchr6XLG0jw4DJLsOo6HoNUtwF7joe7I/g6g104J0tQeoFeA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-09-15T20:33:40Z"
+    mac: ENC[AES256_GCM,data:5LfoFkKHxTW5khQBHsgLnAiyPg5iUWhvdt4uxjLL/KaUAUgHamqoer1wPl4lf+U/DEe/QqIc0iFfystcj50fAFPS+650wFN2ZO+rhNmOBFGwO3ZGmeDZ6UsW/Cdway61nporB2rat5sWQUREno7sA4SFXsr6wdmGzUfoXl32/RA=,iv:e9RziNRdpd0Mk7B/iytSUK/F/D0X0KajJEgIXjvOvhg=,tag:1zMjC6TFkp7iaYDHPFWUpA==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0

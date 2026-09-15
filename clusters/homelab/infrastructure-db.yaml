@@ -4,11 +4,17 @@ metadata:
   name: infrastructure-db
   namespace: flux-system
 spec:
-  interval: 5m
-  path: ./infrastructure/base/postgres
+  interval: 10m
+  path: ./infrastructure/base/supabase
   prune: true
+  wait: true
+  timeout: 20m   # Supabase's first boot initialises the database before the APIs come up
   sourceRef:
     kind: GitRepository
     name: flux-system
-  dependsOn: # Ensure operator is installed first
+  dependsOn:
     - name: infrastructure-core
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

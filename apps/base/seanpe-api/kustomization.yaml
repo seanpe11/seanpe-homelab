@@ -3,5 +3,4 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - service.yaml
-commonLabels:
-  app: cloudbeaver
+  - secret.sops.yaml   # generate once with scripts/gen-secrets.py

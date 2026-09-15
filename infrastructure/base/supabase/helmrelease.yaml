@@ -1,0 +1,120 @@
+# Self-hosted Supabase: Postgres 17 + Studio, Auth, PostgREST, Realtime, Storage, Functions behind Kong.
+# Reached through the in-cluster cloudflared (infrastructure/base/cloudflared) → Kong; supabase.seanpe.io
+# gets a DNS record only once Cloudflare Access sits in front (Kong's basic auth is the second lock).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: supabase
+  namespace: supabase
+spec:
+  interval: 1h
+  releaseName: supabase
+  chart:
+    spec:
+      chart: supabase
+      version: 0.8.0
+      sourceRef:
+        kind: HelmRepository
+        name: supabase
+        namespace: flux-system
+  install:
+    timeout: 15m   # first boot runs the database init scripts before auth/rest/storage can start
+    remediation:
+      retries: 3
+  upgrade:
+    timeout: 15m
+  values:
+    ingress:
+      enabled: false   # no ingress controller; cloudflared routes straight to Kong
+
+    # Every chart default secret is public in the chart's values.yaml — all of these come from secrets.sops.yaml.
+    secret:
+      jwt:
+        secretRef: sb-jwt
+      db:
+        secretRef: sb-db
+      dashboard:
+        secretRef: sb-dashboard
+      realtime:
+        secretRef: sb-realtime
+      meta:
+        secretRef: sb-meta
+      s3:
+        secretRef: sb-s3
+
+    persistence:
+      db:
+        size: 20Gi
+      storage:
+        size: 10Gi
+
+    deployment:
+      db:
+        envFrom:
+          - secretRef:
+              name: seanpe-api-db-password   # read by the seanpe-api migration below
+
+    # environment lists replace the chart defaults wholesale — these are the defaults with the URLs changed.
+    environment:
+      auth:
+        - { name: API_EXTERNAL_URL, value: "https://supabase.seanpe.io" }
+        - { name: GOTRUE_API_HOST, value: "0.0.0.0" }
+        - { name: GOTRUE_API_PORT, value: "9999" }
+        - { name: GOTRUE_SITE_URL, value: "https://supabase.seanpe.io" }
+        - { name: GOTRUE_URI_ALLOW_LIST, value: "https://supabase.seanpe.io" }
+        - { name: GOTRUE_DISABLE_SIGNUP, value: "true" }   # personal instance: create users from Studio
+        - { name: GOTRUE_JWT_DEFAULT_GROUP_NAME, value: "authenticated" }
+        - { name: GOTRUE_JWT_ADMIN_ROLES, value: "service_role" }
+        - { name: GOTRUE_JWT_AUD, value: "authenticated" }
+        - { name: GOTRUE_JWT_EXP, value: "3600" }
+        - { name: GOTRUE_EXTERNAL_EMAIL_ENABLED, value: "true" }
+        - { name: GOTRUE_MAILER_AUTOCONFIRM, value: "true" }
+        - { name: GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED, value: "false" }
+        - { name: GOTRUE_SMTP_ADMIN_EMAIL, value: "SMTP_ADMIN_MAIL" }
+        - { name: GOTRUE_SMTP_HOST, value: "SMTP_HOST" }
+        - { name: GOTRUE_SMTP_PORT, value: "123" }
+        - { name: GOTRUE_EXTERNAL_PHONE_ENABLED, value: "false" }
+        - { name: GOTRUE_SMS_AUTOCONFIRM, value: "false" }
+        - { name: GOTRUE_SMTP_SENDER_NAME, value: "SMTP_SENDER_NAME" }
+        - { name: GOTRUE_MAILER_URLPATHS_INVITE, value: "/auth/v1/verify" }
+        - { name: GOTRUE_MAILER_URLPATHS_CONFIRMATION, value: "/auth/v1/verify" }
+        - { name: GOTRUE_MAILER_URLPATHS_RECOVERY, value: "/auth/v1/verify" }
+        - { name: GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE, value: "/auth/v1/verify" }
+      studio:
+        - { name: HOSTNAME, value: "::" }
+        - { name: STUDIO_PORT, value: "3000" }
+        - { name: DEFAULT_ORGANIZATION_NAME, value: "seanpe" }
+        - { name: DEFAULT_PROJECT_NAME, value: "personal" }
+        - { name: SUPABASE_PUBLIC_URL, value: "https://supabase.seanpe.io" }
+        - { name: NEXT_ANALYTICS_BACKEND_PROVIDER, value: "postgres" }
+
+    # Runs once, when the database is first initialised — never again on an existing volume.
+    migration:
+      zz-seanpe-api.sql: |
+        -- seanpe-api gets its own login role and schema. The schema is NOT in PGRST_DB_SCHEMAS,
+        -- so PostgREST — and therefore the public anon key — cannot reach these tables.
+        \set pw `echo "$SEANPE_API_DB_PASSWORD"`
+        create role seanpe_api login password :'pw';
+        create schema seanpe_api authorization seanpe_api;
+        alter role seanpe_api set search_path = seanpe_api;
+
+        set role seanpe_api;
+        -- Mirrors seanpe-api sql/schema/001_pkms_tables.sql and 002_spoons_tables.sql (the source of truth).
+        create table spa_pkms_quotes (
+          id SERIAL PRIMARY KEY,
+          quote TEXT NOT NULL,
+          markdown_formatted TEXT,
+          author TEXT NOT NULL,
+          source TEXT NOT NULL,
+          category TEXT,
+          tags TEXT[],
+          added TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        create table spa_spoons_entries (
+          id SERIAL PRIMARY KEY,
+          spoon_value INTEGER NOT NULL,
+          task TEXT NOT NULL,
+          recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        reset role;
