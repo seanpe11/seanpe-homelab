@@ -1,0 +1,12 @@
+[Unit]
+Description=Pull a pg_dump of the Supabase database from the seanpe-homelab cluster
+Wants=network-online.target seanpe-homelab-api.service
+After=network-online.target seanpe-homelab-api.service
+
+[Service]
+Type=oneshot
+Environment=KUBECONFIG=%h/.kube/seanpe-homelab.yaml
+ExecStart=%h/Documents/explore/seanpe-homelab/ops/rocinante/pg-dump-pull.sh
+# A laptop wakes before the tailnet is back; retry instead of skipping the night.
+Restart=on-failure
+RestartSec=5min

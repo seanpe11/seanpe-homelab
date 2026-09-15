@@ -1,0 +1,15 @@
+# kubectl access to the seanpe-homelab cluster without exposing its API on any network:
+# localhost:6444 → ssh to donnager (tailnet) → the Incus VM's k3s API at 10.77.0.10:6443.
+# ~/.kube/seanpe-homelab.yaml (written by the pemily-homelab k3s role) points at https://127.0.0.1:6444.
+[Unit]
+Description=SSH tunnel to the seanpe-homelab Kubernetes API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ssh -NT -o BatchMode=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -L 127.0.0.1:6444:10.77.0.10:6443 pemily@100.82.26.51
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

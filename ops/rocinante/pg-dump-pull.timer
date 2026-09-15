@@ -1,0 +1,11 @@
+[Unit]
+Description=Nightly pg_dump of the Supabase database to rocinante
+
+[Timer]
+OnCalendar=*-*-* 03:30
+# Laptop: if it was asleep or off at 03:30, run on the next wake instead.
+Persistent=true
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target

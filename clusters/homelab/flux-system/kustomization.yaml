@@ -1,0 +1,7 @@
+# Written by `flux install --export` / `flux create --export` (flux v2.9.5), the same files `flux bootstrap`
+# commits. The repo is public, so the GitRepository reads over HTTPS with no deploy key.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - gotk-components.yaml
+  - gotk-sync.yaml
