@@ -49,6 +49,8 @@ spec:
         size: 10Gi
 
     deployment:
+      kong:
+        configMapRef: supabase-kong-noauth   # our copy, without dashboard basic-auth
       db:
         envFrom:
           - secretRef:
