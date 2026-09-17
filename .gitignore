@@ -3,3 +3,5 @@ secrets/*
 
 # local MCP server registrations (may name private project refs)
 .mcp.json
+
+__pycache__/
