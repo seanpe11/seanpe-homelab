@@ -1,0 +1,26 @@
+# Studio serves Supabase's MCP endpoint at /api/mcp. That endpoint runs SQL as
+# supabase_admin — superuser, read-write — and has NO authentication of its own
+# (https://supabase.com/docs/guides/self-hosting/enable-mcp), so it must never be
+# routed through cloudflared or any public hostname.
+#
+# This NodePort exists so agents on Sean's OWN machines can reach it over the tailnet:
+#   http://<vm-tailnet-name>:30300/api/mcp
+# It binds on the VM's interfaces only: the Incus bridge (donnager) and the tailnet.
+# There is no port forward from the router, so the Internet cannot reach it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: supabase-studio-mcp
+  namespace: supabase
+  labels:
+    app.kubernetes.io/part-of: supabase
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: supabase-studio
+    app.kubernetes.io/instance: supabase
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      nodePort: 30300

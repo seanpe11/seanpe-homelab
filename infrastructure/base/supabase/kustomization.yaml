@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - helmrelease.yaml
   - kong-config.yaml
+  - studio-mcp-nodeport.yaml   # tailnet-only reach for the MCP endpoint
   - secrets.sops.yaml   # generate once with scripts/gen-secrets.py
