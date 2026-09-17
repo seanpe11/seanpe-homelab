@@ -10,4 +10,4 @@ images:
     newName: seanpe11/seanpe-com
     newTag: "v1.0.2"
   - name: seanpe11/seanpe-api
-    newTag: "4b3731e"   # seanpe11/seanpe-api@4b3731e — X-API-Key on writes
+    newTag: "efb2492"   # seanpe11/seanpe-api@efb2492 — X-API-Key on writes, swagger regenerated
