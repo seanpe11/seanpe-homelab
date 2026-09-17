@@ -59,7 +59,8 @@ spec:
     # environment lists replace the chart defaults wholesale — these are the defaults with the URLs changed.
     environment:
       auth:
-        - { name: API_EXTERNAL_URL, value: "https://supabase.seanpe.io" }
+        # must be reachable without Cloudflare Access: confirm/recovery links point here
+        - { name: API_EXTERNAL_URL, value: "https://db.seanpe.io" }
         - { name: GOTRUE_API_HOST, value: "0.0.0.0" }
         - { name: GOTRUE_API_PORT, value: "9999" }
         - { name: GOTRUE_SITE_URL, value: "https://supabase.seanpe.io" }

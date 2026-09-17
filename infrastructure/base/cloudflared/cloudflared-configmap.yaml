@@ -14,7 +14,15 @@ data:
         service: http://seanpe-api.apps.svc.cluster.local:80
       - hostname: portfolio.seanpe.io
         service: http://seanpe-com-service.apps.svc.cluster.local:80
-      # DNS record deliberately not created until Cloudflare Access protects it.
+      # Studio + everything else, behind Cloudflare Access (Kong has no password any more).
       - hostname: supabase.seanpe.io
         service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
+      # db.seanpe.io is the PUBLIC API host: no Access in front of it, so route ONLY the API
+      # paths. Everything else on this host - notably "/", which Kong maps to Studio - must 404,
+      # or Studio would be on the internet unauthenticated. Allowlist, not denylist.
+      - hostname: db.seanpe.io
+        path: ^/(rest|auth|storage|realtime|functions|graphql)/
+        service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
+      - hostname: db.seanpe.io
+        service: http_status:404
       - service: http_status:404
