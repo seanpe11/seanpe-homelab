@@ -7,6 +7,8 @@ metadata:
   namespace: networking
 data:
   config.yaml: |
+    tunnel: 40691c86-e080-4053-b822-fb2927accf28
+    credentials-file: /etc/cloudflared-creds/credentials.json
     ingress:
       - hostname: api.seanpe.io
         service: http://seanpe-api.apps.svc.cluster.local:80

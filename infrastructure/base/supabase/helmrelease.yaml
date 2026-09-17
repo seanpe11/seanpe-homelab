@@ -98,9 +98,12 @@ spec:
         create schema seanpe_api authorization seanpe_api;
         alter role seanpe_api set search_path = seanpe_api;
 
+        -- Qualify every table with the schema: `set role` does NOT change the session's search_path
+        -- (ALTER ROLE ... SET search_path only applies to new sessions), so unqualified CREATEs land in
+        -- public, where seanpe_api has no rights. That failed the first init on 2026-09-17.
         set role seanpe_api;
         -- Mirrors seanpe-api sql/schema/001_pkms_tables.sql and 002_spoons_tables.sql (the source of truth).
-        create table spa_pkms_quotes (
+        create table seanpe_api.spa_pkms_quotes (
           id SERIAL PRIMARY KEY,
           quote TEXT NOT NULL,
           markdown_formatted TEXT,
@@ -110,7 +113,7 @@ spec:
           tags TEXT[],
           added TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        create table spa_spoons_entries (
+        create table seanpe_api.spa_spoons_entries (
           id SERIAL PRIMARY KEY,
           spoon_value INTEGER NOT NULL,
           task TEXT NOT NULL,

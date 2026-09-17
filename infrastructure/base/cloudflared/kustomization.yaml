@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - cloudflared-configmap.yaml
   - cloudflared-deployment.yaml
-  - tunnel-token.sops.yaml   # TUNNEL_TOKEN for seanpe-k8s-homelab
+  - tunnel-credentials.sops.yaml   # credentials file: keeps the tunnel locally managed

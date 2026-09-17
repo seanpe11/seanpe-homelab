@@ -1,6 +1,6 @@
-## Tunnel secret cmd:
-## cloudflared tunnel token <tunnel-name>
-## kubectl create secret generic tunnel-token-secret --from-literal=token=<TUNNEL_TOKEN>
+## Locally managed tunnel: the ingress rules live in cloudflared-config, in Git.
+## Do NOT run this with TUNNEL_TOKEN. A token makes the tunnel *remotely* managed and the dashboard's
+## configuration silently replaces these rules — on 2026-09-17 that served a bare 404 for every hostname.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,24 +18,33 @@ spec:
     spec:
       containers:
       - name: cloudflared
-        image: cloudflare/cloudflared:latest
+        image: cloudflare/cloudflared:2026.9.1
         args:
         - "tunnel"
+        - "--no-autoupdate"
         - "--config"
         - "/etc/cloudflared/config.yaml"
         - "run"
-        env:
-        - name: TUNNEL_TOKEN
-          valueFrom:
-            secretKeyRef:
-              # This securely injects the token from the command listed above
-              name: tunnel-token-secret
-              key: token
+        ports:
+        - name: metrics
+          containerPort: 2000
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 10
+          periodSeconds: 30
         volumeMounts:
         - name: config-volume
           mountPath: /etc/cloudflared
+          readOnly: true
+        - name: tunnel-credentials
+          mountPath: /etc/cloudflared-creds
           readOnly: true
       volumes:
       - name: config-volume
         configMap:
           name: cloudflared-config
+      - name: tunnel-credentials
+        secret:
+          secretName: tunnel-credentials
