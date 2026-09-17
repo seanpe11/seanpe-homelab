@@ -2,7 +2,8 @@
 # ("it does not offer OAuth 2.1 authentication, and is not intended to be exposed to the Internet"
 # - https://supabase.com/docs/guides/self-hosting/enable-mcp). So it is never routed through the
 # tunnel or Cloudflare; it is reached only over this local forward, which is what Supabase recommends.
-# Claude sessions use http://127.0.0.1:54323/api/mcp (registered at user scope).
+# FALLBACK ONLY: the live path is the tailnet NodePort, http://seanpe-homelab-1:30300/api/mcp.
+# Enable this unit if the VM ever drops off the tailnet.
 [Unit]
 Description=Local port-forward to Supabase Studio (serves the MCP endpoint)
 Wants=network-online.target seanpe-homelab-api.service

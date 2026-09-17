@@ -2,6 +2,21 @@
 
 Things that run on the workstation rather than on donnager.
 
+## Supabase MCP — how agents reach the database
+
+Studio serves Supabase's MCP endpoint at `/api/mcp`. It runs SQL as **supabase_admin —
+superuser, read-write** (verified), and has **no authentication of its own**; Supabase's docs
+say not to expose it to the Internet. So it is never routed through cloudflared or Cloudflare
+Access. Two ways in, both private:
+
+| Path | URL | Notes |
+| :--- | :--- | :--- |
+| **Tailnet (current)** | `http://seanpe-homelab-1:30300/api/mcp` | NodePort on the VM, reachable from any machine on the tailnet. Registered with Claude at user scope. |
+| Local port-forward (fallback) | `http://127.0.0.1:54323/api/mcp` | `supabase-mcp-tunnel.service`, disabled. Enable it if the VM ever drops off the tailnet. |
+
+**Worth knowing:** anything on the tailnet can reach it — phones and pegasus included. Tighten
+with a Tailscale ACL if that matters.
+
 ## seanpe-homelab-api — kubectl access
 
 The cluster runs in an Incus VM on donnager with no exposed API. This unit keeps an SSH tunnel
