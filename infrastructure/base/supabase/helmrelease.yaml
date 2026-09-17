@@ -94,19 +94,17 @@ spec:
     # Runs once, when the database is first initialised — never again on an existing volume.
     migration:
       zz-seanpe-api.sql: |
-        -- seanpe-api gets its own login role and schema. The schema is NOT in PGRST_DB_SCHEMAS,
-        -- so PostgREST — and therefore the public anon key — cannot reach these tables.
+        -- seanpe-api's tables live in `public` with an spa_ prefix as the namespace (Sean's
+        -- convention), so they show up in Studio's default view. `public` IS exposed through
+        -- PostgREST with the public anon key, so access is controlled by two separate gates:
+        --   1. grants  - anon gets SELECT on quotes only; spoons gets nothing at all
+        --   2. RLS     - enabled on both; the owner (seanpe_api) bypasses it, so the API is unaffected
         \set pw `echo "$SEANPE_API_DB_PASSWORD"`
         create role seanpe_api login password :'pw';
-        create schema seanpe_api authorization seanpe_api;
-        alter role seanpe_api set search_path = seanpe_api;
+        alter role seanpe_api set search_path = public;
 
-        -- Qualify every table with the schema: `set role` does NOT change the session's search_path
-        -- (ALTER ROLE ... SET search_path only applies to new sessions), so unqualified CREATEs land in
-        -- public, where seanpe_api has no rights. That failed the first init on 2026-09-17.
-        set role seanpe_api;
-        -- Mirrors seanpe-api sql/schema/001_pkms_tables.sql and 002_spoons_tables.sql (the source of truth).
-        create table seanpe_api.spa_pkms_quotes (
+        -- Mirrors seanpe-api sql/schema/001_pkms_tables.sql and 002_spoons_tables.sql.
+        create table public.spa_pkms_quotes (
           id SERIAL PRIMARY KEY,
           quote TEXT NOT NULL,
           markdown_formatted TEXT,
@@ -117,11 +115,24 @@ spec:
           added TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           source_hash TEXT UNIQUE   -- sha256 of the normalised body; upsert key for the markdown sync
         );
-        create table seanpe_api.spa_spoons_entries (
+        create table public.spa_spoons_entries (
           id SERIAL PRIMARY KEY,
           spoon_value INTEGER NOT NULL,
           task TEXT NOT NULL,
           recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        reset role;
+
+        -- owner must be seanpe_api: RLS is bypassed by the owner, which is how the API keeps working
+        alter table public.spa_pkms_quotes owner to seanpe_api;
+        alter table public.spa_spoons_entries owner to seanpe_api;
+
+        alter table public.spa_pkms_quotes enable row level security;
+        alter table public.spa_spoons_entries enable row level security;
+
+        create policy "anon and authenticated can read quotes"
+          on public.spa_pkms_quotes for select to anon, authenticated using (true);
+
+        grant usage on schema public to anon, authenticated;
+        grant select on public.spa_pkms_quotes to anon, authenticated;
+        revoke all on public.spa_spoons_entries from anon, authenticated;
