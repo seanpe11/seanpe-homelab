@@ -1,5 +1,5 @@
-# Routes for tunnel seanpe-k8s-homelab (40691c86-e080-4053-b822-fb2927accf28).
-# A hostname also needs its DNS record: cloudflared tunnel route dns seanpe-k8s-homelab <hostname>
+# Routes for tunnel seanpe-homelab-cluster ().
+# A hostname also needs its DNS record: cloudflared tunnel route dns seanpe-homelab-cluster <hostname>
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,7 +7,7 @@ metadata:
   namespace: networking
 data:
   config.yaml: |
-    tunnel: 40691c86-e080-4053-b822-fb2927accf28
+    tunnel: 
     credentials-file: /etc/cloudflared-creds/credentials.json
     ingress:
       - hostname: api.seanpe.io
