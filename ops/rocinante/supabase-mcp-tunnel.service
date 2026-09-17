@@ -1,0 +1,18 @@
+# Supabase's self-hosted MCP endpoint is served by Studio at /api/mcp and has NO authentication
+# ("it does not offer OAuth 2.1 authentication, and is not intended to be exposed to the Internet"
+# - https://supabase.com/docs/guides/self-hosting/enable-mcp). So it is never routed through the
+# tunnel or Cloudflare; it is reached only over this local forward, which is what Supabase recommends.
+# Claude sessions use http://127.0.0.1:54323/api/mcp (registered at user scope).
+[Unit]
+Description=Local port-forward to Supabase Studio (serves the MCP endpoint)
+Wants=network-online.target seanpe-homelab-api.service
+After=network-online.target seanpe-homelab-api.service
+
+[Service]
+Environment=KUBECONFIG=%h/.kube/seanpe-homelab.yaml
+ExecStart=/usr/local/bin/kubectl -n supabase port-forward --address 127.0.0.1 svc/supabase-supabase-studio 54323:3000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

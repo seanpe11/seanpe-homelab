@@ -1,2 +1,5 @@
 !secrets/SECRETS.md
 secrets/*
+
+# local MCP server registrations (may name private project refs)
+.mcp.json
