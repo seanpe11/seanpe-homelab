@@ -12,7 +12,7 @@ Access. Two ways in, both private:
 | Path | URL | Notes |
 | :--- | :--- | :--- |
 | **Tailnet (current)** | `http://seanpe-homelab-1:30300/api/mcp` | NodePort on the VM, reachable from any machine on the tailnet. Registered with Claude at user scope. |
-| Local port-forward (fallback) | `http://127.0.0.1:54323/api/mcp` | `supabase-mcp-tunnel.service`, disabled. Enable it if the VM ever drops off the tailnet. |
+| Local port-forward (fallback) | `http://127.0.0.1:54323/api/mcp` | `supabase-mcp-tunnel.service`, enabled. Kept running because a session that started before the tailnet switch still holds the old URL; also the way in if the VM drops off the tailnet. |
 
 **Worth knowing:** anything on the tailnet can reach it — phones and pegasus included. Tighten
 with a Tailscale ACL if that matters.
