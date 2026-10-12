@@ -14,6 +14,10 @@ data:
         service: http://seanpe-api.apps.svc.cluster.local:80
       - hostname: portfolio.seanpe.io
         service: http://seanpe-com-service.apps.svc.cluster.local:80
+      # Calibre-Web Automated: deliberately NO Access - its own login guards the web UI, OPDS
+      # (/opds) and KOSync (/kosync), so Readest and KOReader connect with just a CWA user.
+      - hostname: books.seanpe.io
+        service: http://calibre-web-automated.apps.svc.cluster.local:80
       # Studio + everything else, behind Cloudflare Access (Kong has no password any more).
       - hostname: supabase.seanpe.io
         service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
