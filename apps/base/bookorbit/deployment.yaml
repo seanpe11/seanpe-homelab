@@ -14,6 +14,18 @@ spec:
       labels:
         app: bookorbit
     spec:
+      # compose's depends_on: service_healthy. Without it the app crash-loops on a connection
+      # timeout until Postgres is up (seen on first deploy: 3 restarts).
+      initContainers:
+        - name: wait-for-db
+          image: pgvector/pgvector   # already on the node for the StatefulSet; has pg_isready
+          command: ["sh", "-c", "until pg_isready -h bookorbit-db -U bookorbit -d bookorbit; do sleep 2; done"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
       containers:
         - name: bookorbit
           image: ghcr.io/bookorbit/bookorbit   # tag pinned in apps/production
