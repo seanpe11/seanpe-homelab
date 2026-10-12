@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookorbit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # RWO volumes: never two pods on one library
+  selector:
+    matchLabels:
+      app: bookorbit
+  template:
+    metadata:
+      labels:
+        app: bookorbit
+    spec:
+      containers:
+        - name: bookorbit
+          image: ghcr.io/bookorbit/bookorbit   # tag pinned in apps/production
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: APP_URL
+              value: https://books.seanpe.io
+            - name: POSTGRES_HOST
+              value: bookorbit-db
+            - name: POSTGRES_USER
+              value: bookorbit
+            - name: POSTGRES_DB
+              value: bookorbit
+            - name: TZ
+              value: America/Chicago
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: LIBRARY_BROWSE_ROOT   # hide the rest of the container from the folder picker
+              value: /books
+          envFrom:
+            - secretRef:
+                name: bookorbit   # POSTGRES_PASSWORD, JWT_SECRET, SETUP_BOOTSTRAP_TOKEN, *_ENCRYPTION_KEY
+          volumeMounts:
+            - name: books
+              mountPath: /books
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:          # first boot runs the database migrations
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 15
+          livenessProbe:
+            tcpSocket:           # not /health: a database blip shouldn't restart the app
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1536Mi     # the entrypoint sizes Node's heap from this (65%)
+          # Mirrors upstream compose: read-only root, starts as root only to chown /data and
+          # drop to PUID:PGID with su-exec.
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+      volumes:
+        - name: books
+          persistentVolumeClaim:
+            claimName: bookorbit-books
+        - name: data
+          persistentVolumeClaim:
+            claimName: bookorbit-data
+        - name: tmp
+          emptyDir: {}

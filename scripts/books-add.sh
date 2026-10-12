@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Add books to Calibre-Web Automated's ingest folder from rocinante.
+# Add books to BookOrbit's library from rocinante.
 #
 #   scripts/books-add.sh ~/Downloads/*.epub
 #   scripts/books-add.sh https://www.gutenberg.org/ebooks/2701.epub3.images
 #   scripts/books-add.sh --gutenberg 84 1342 2701
 #
-# Everything is fetched completely into a local temp dir first, then streamed into the pod as
-# CWA's own user (abc). CWA warns that downloading straight into the ingest folder causes
-# duplicate imports, and that root-owned files there fail to import. It deletes each file once
-# imported; results show up in the web UI.
+# Everything is fetched completely into a local temp dir first, streamed into a hidden folder on
+# the library volume as BookOrbit's user (1000), then renamed into /books in one step, so the
+# library's folder watcher only ever sees finished files (it skips dot-folders). Needs
+# "Watch folders" on for the /books library; otherwise run a Scan in Settings > Libraries.
 set -euo pipefail
 
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/seanpe-homelab.yaml}"
-target=(-n apps deploy/calibre-web-automated)
+target=(-n apps deploy/bookorbit)
 
 [[ $# -gt 0 ]] || { sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
@@ -43,5 +43,13 @@ for arg in "$@"; do
 done
 
 n=$(find "$stage" -type f | wc -l)
-tar -C "$stage" -cf - . | kubectl exec -i "${target[@]}" -- s6-setuidgid abc tar -xf - -C /cwa-book-ingest
-echo "sent $n file(s) to /cwa-book-ingest. Watch: kubectl -n apps logs deploy/calibre-web-automated -f | grep -i ingest"
+tar -C "$stage" -cf - . | kubectl exec -i "${target[@]}" -- su-exec 1000:1000 sh -c '
+  set -e
+  tmp=$(mktemp -d /books/.incoming.XXXXXX)
+  tar -xf - -C "$tmp"
+  for f in "$tmp"/*; do
+    dest="/books/${f##*/}"
+    if [ -e "$dest" ]; then echo "exists, skipped: ${f##*/}" >&2; else mv "$f" "$dest"; fi
+  done
+  rm -rf "$tmp"'
+echo "sent $n file(s) to /books. Watch: kubectl -n apps logs deploy/bookorbit -f"
