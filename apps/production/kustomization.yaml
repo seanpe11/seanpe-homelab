@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../base/seanpe-com
   - ../base/seanpe-api
-  - ../base/bookorbit
 namespace: apps
 
 images:
@@ -12,7 +11,3 @@ images:
     newTag: "v1.0.2"
   - name: seanpe11/seanpe-api
     newTag: "efb2492"   # seanpe11/seanpe-api@efb2492 — X-API-Key on writes, swagger regenerated
-  - name: ghcr.io/bookorbit/bookorbit
-    newTag: "3.3.0"   # 2026-10-07. Moves fast: read release notes before bumping
-  - name: pgvector/pgvector
-    newTag: "0.8.7-pg18"   # what upstream compose's pg18 resolves to; a major bump needs a dump/restore

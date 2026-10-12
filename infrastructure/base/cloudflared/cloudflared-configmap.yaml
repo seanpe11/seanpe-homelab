@@ -14,10 +14,6 @@ data:
         service: http://seanpe-api.apps.svc.cluster.local:80
       - hostname: portfolio.seanpe.io
         service: http://seanpe-com-service.apps.svc.cluster.local:80
-      # BookOrbit: deliberately NO Access - its own login guards the web UI, OPDS and the
-      # KOReader plugin's sync, so Readest and the Kindle connect with just a BookOrbit user.
-      - hostname: books.seanpe.io
-        service: http://bookorbit.apps.svc.cluster.local:80
       # Studio + everything else, behind Cloudflare Access (Kong has no password any more).
       - hostname: supabase.seanpe.io
         service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
