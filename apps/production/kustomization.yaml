@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - ../base/seanpe-com
   - ../base/seanpe-api
+  - ../base/calibre-web-automated
 namespace: apps
 
 images:
@@ -11,3 +12,5 @@ images:
     newTag: "v1.0.2"
   - name: seanpe11/seanpe-api
     newTag: "efb2492"   # seanpe11/seanpe-api@efb2492 — X-API-Key on writes, swagger regenerated
+  - name: crocodilestick/calibre-web-automated
+    newTag: "v4.0.8"   # 2026-09-28
