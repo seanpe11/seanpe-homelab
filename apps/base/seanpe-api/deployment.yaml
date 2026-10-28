@@ -27,7 +27,9 @@ spec:
               value: production
             - name: GIN_MODE
               value: release
-            - name: DATABASE_URL   # role seanpe_api, search_path seanpe_api — see infrastructure/base/supabase
+            - name: CORS_ALLOWED_ORIGINS   # browser origins that may read the public routes (poker-trainer PWA)
+              value: https://dev1.seanpe.io,https://poker-drills.seanpe.io
+            - name: DATABASE_URL   # role seanpe_api, search_path public — see infrastructure/base/supabase
               valueFrom:
                 secretKeyRef:
                   name: seanpe-api
