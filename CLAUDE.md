@@ -46,7 +46,11 @@ not a quota, and it can't expand. Check `df -h /` in the VM before sizing anythi
   config, pulls remote config and silently ignores the ConfigMap's ingress rules. This tunnel was
   CLI-created for that reason.
 - **cloudflared doesn't reload its ConfigMap.** After changing ingress rules, Flux applies the
-  ConfigMap but the pods keep the old rules. Run `kubectl -n networking rollout restart deploy`.
+  ConfigMap but the pods keep the old rules. `rollout restart` is **not enough**: Flux strips the
+  `restartedAt` annotation on its next apply, the rollout stops halfway, and one old pod keeps
+  the old rules (2026-11-04). Run `kubectl -n networking delete pod --all`, then check that every
+  pod's AGE is fresh. Test new public paths with a `?cb=` query string, because Cloudflare's edge
+  caches the 404s a stale pod serves.
 - **`cloudflared tunnel route dns` on donnager** reads `~/.cloudflared/config.yml` and routes to the
   *host's* tunnel. Always run `cloudflared tunnel --config /dev/null route dns <UUID> <host>`
   (from rocinante too; it works there).
