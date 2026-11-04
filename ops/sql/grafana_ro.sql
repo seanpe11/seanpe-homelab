@@ -21,3 +21,10 @@ grant usage on schema public to grafana_ro;
 grant select on public.spa_pkms_quotes to grafana_ro;
 drop policy if exists "grafana_ro reads quotes" on public.spa_pkms_quotes;
 create policy "grafana_ro reads quotes" on public.spa_pkms_quotes for select to grafana_ro using (true);
+
+-- Supabase grants USAGE on schema `net` (pg_net) to PUBLIC, and PUBLIC holds ALL on its tables:
+-- any login role, grafana_ro included, could read responses and queue outbound HTTP (it can
+-- unset its own read-only default). Every role that needs pg_net is granted USAGE by name
+-- (postgres, anon, authenticated, service_role, supabase_functions_admin), so only the PUBLIC
+-- path goes. Recheck after a Supabase upgrade: an extension update can re-grant it.
+revoke usage on schema net from public;
