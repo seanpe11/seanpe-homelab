@@ -1,0 +1,130 @@
+# Grafana over the Supabase Postgres, two hostnames (cloudflared, infrastructure/base/cloudflared):
+#   grafana.seanpe.io     whole host behind Cloudflare Access - Sean only
+#   dashboards.seanpe.io  public, but cloudflared passes ONLY shared-dashboard paths; the rest 404s
+# Shared (public) dashboards, NOT auth.anonymous: anonymous would expose the datasource query API.
+# The datasource logs in as grafana_ro (ops/sql/grafana_ro.sql): SELECT on dashboard tables only.
+# Chart version and image tag are pinned in apps/production/kustomization.yaml.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: grafana
+spec:
+  interval: 1h
+  releaseName: grafana
+  chart:
+    spec:
+      chart: grafana
+      version: 0.0.0   # overlay
+      sourceRef:
+        kind: HelmRepository
+        name: grafana-community
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  values:
+    testFramework:
+      enabled: false
+    deploymentStrategy:
+      type: Recreate   # sqlite on a RWO volume: never two pods at once
+    persistence:
+      enabled: true
+      storageClassName: local-path
+      size: 1Gi   # a label on local-path, not a quota
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { memory: 512Mi }
+
+    admin:
+      existingSecret: grafana-secrets   # admin-user / admin-password
+    envValueFrom:
+      GRAFANA_RO_PASSWORD:
+        secretKeyRef: { name: grafana-secrets, key: GRAFANA_RO_PASSWORD }
+
+    grafana.ini:
+      server:
+        domain: grafana.seanpe.io
+        # Private host on purpose: login redirects must stay on it. Share links Grafana shows
+        # will say grafana.seanpe.io - hand them out as dashboards.seanpe.io instead.
+        # The public page only carries this in boot JSON; <base href> stays "/" (verified on 13.3).
+        root_url: https://grafana.seanpe.io
+      security:
+        cookie_secure: true
+        disable_gravatar: true
+      users:
+        allow_sign_up: false
+      auth.anonymous:
+        enabled: false
+      public_dashboards:
+        enabled: true
+      analytics:
+        reporting_enabled: false
+        check_for_updates: false
+        check_for_plugin_updates: false
+        feedback_links_enabled: false
+
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        deleteDatasources: []
+        datasources:
+          - name: Supabase
+            uid: supabase-pg
+            type: grafana-postgresql-datasource
+            access: proxy
+            isDefault: true
+            url: supabase-supabase-db.supabase.svc.cluster.local:5432
+            user: grafana_ro
+            jsonData:
+              database: postgres
+              sslmode: disable   # in-cluster only
+              postgresVersion: 1700
+              timescaledb: false
+            secureJsonData:
+              password: ${GRAFANA_RO_PASSWORD}
+            editable: false
+
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: default
+            folder: Provisioned
+            type: file
+            disableDeletion: true
+            allowUiUpdates: false
+            options:
+              path: /var/lib/grafana/dashboards/default
+    dashboards:
+      default:
+        quotes:
+          json: |
+            {
+              "uid": "quotes",
+              "title": "Quotes",
+              "schemaVersion": 41,
+              "time": { "from": "now-1y", "to": "now" },
+              "panels": [
+                {
+                  "id": 1, "type": "barchart", "title": "Quotes by category",
+                  "gridPos": { "x": 0, "y": 0, "w": 12, "h": 9 },
+                  "datasource": { "type": "grafana-postgresql-datasource", "uid": "supabase-pg" },
+                  "targets": [{
+                    "refId": "A", "format": "table", "rawQuery": true, "editorMode": "code",
+                    "datasource": { "type": "grafana-postgresql-datasource", "uid": "supabase-pg" },
+                    "rawSql": "select coalesce(category, '(none)') as category, count(*) as quotes from spa_pkms_quotes group by 1 order by 2 desc"
+                  }],
+                  "options": { "orientation": "horizontal", "showValue": "always", "legend": { "showLegend": false } }
+                },
+                {
+                  "id": 2, "type": "stat", "title": "Total quotes",
+                  "gridPos": { "x": 12, "y": 0, "w": 6, "h": 9 },
+                  "datasource": { "type": "grafana-postgresql-datasource", "uid": "supabase-pg" },
+                  "targets": [{
+                    "refId": "A", "format": "table", "rawQuery": true, "editorMode": "code",
+                    "datasource": { "type": "grafana-postgresql-datasource", "uid": "supabase-pg" },
+                    "rawSql": "select count(*) as quotes from spa_pkms_quotes"
+                  }]
+                }
+              ]
+            }

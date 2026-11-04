@@ -1,5 +1,6 @@
 # Routes for tunnel seanpe-homelab-cluster (c61d839a-8683-4b67-8b4b-b120dfa434bc).
-# A hostname also needs its DNS record: cloudflared tunnel route dns seanpe-homelab-cluster <hostname>
+# A hostname also needs its DNS record (from rocinante or donnager, --config /dev/null is required):
+#   cloudflared tunnel --config /dev/null route dns c61d839a-8683-4b67-8b4b-b120dfa434bc <hostname>
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -24,5 +25,17 @@ data:
         path: ^/(rest|auth|storage|realtime|functions|graphql)/
         service: http://supabase-supabase-kong.supabase.svc.cluster.local:8000
       - hostname: db.seanpe.io
+        service: http_status:404
+      # Grafana, private: the whole host behind Cloudflare Access (Sean only).
+      - hostname: grafana.seanpe.io
+        service: http://grafana.apps.svc.cluster.local:80
+      # Grafana, PUBLIC: same instance, no Access. Pass ONLY what a shared dashboard needs -
+      # the page, its API (dashboard JSON, panel queries, annotations) and static assets.
+      # Login, /api/*, the datasource proxy and "/" must 404. Verified on Grafana 13.3: the page
+      # also calls /ofrep/v1/evaluate/flags and /apis/dashboard.grafana.app/; both may 404 harmlessly.
+      - hostname: dashboards.seanpe.io
+        path: ^/(public-dashboards/[0-9a-f]{32}$|api/public/dashboards/[0-9a-f]{32}(/|$)|public/)
+        service: http://grafana.apps.svc.cluster.local:80
+      - hostname: dashboards.seanpe.io
         service: http_status:404
       - service: http_status:404
