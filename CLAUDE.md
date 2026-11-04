@@ -51,6 +51,9 @@ not a quota, and it can't expand. Check `df -h /` in the VM before sizing anythi
   the old rules (2026-11-04). Run `kubectl -n networking delete pod --all`, then check that every
   pod's AGE is fresh. Test new public paths with a `?cb=` query string, because Cloudflare's edge
   caches the 404s a stale pod serves.
+- **Warn Sean before touching the tunnel.** Deleting or restarting the cloudflared pods takes every
+  hostname here down for about a minute, and he may be on his phone (2026-11-04). First run
+  `tg-ping "cluster tunnel restarting, ~1 min"`, wait a few seconds, then restart.
 - **`cloudflared tunnel route dns` on donnager** reads `~/.cloudflared/config.yml` and routes to the
   *host's* tunnel. Always run `cloudflared tunnel --config /dev/null route dns <UUID> <host>`
   (from rocinante too; it works there).
