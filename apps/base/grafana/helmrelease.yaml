@@ -97,6 +97,322 @@ spec:
               path: /var/lib/grafana/dashboards/default
     dashboards:
       default:
+        pipeline-health:
+          json: |
+            {
+              "uid": "pipeline-health",
+              "title": "Pipeline health",
+              "description": "Liveness of the prediction-market collectors writing into the homelab Postgres.",
+              "schemaVersion": 41,
+              "time": {
+                "from": "now-24h",
+                "to": "now"
+              },
+              "refresh": "1m",
+              "panels": [
+                {
+                  "id": 1,
+                  "type": "stat",
+                  "title": "Collectors beating (< 2 min)",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 6,
+                    "h": 4
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select count(*) filter (where now() - last_beat < interval '2 minutes') as beating, count(*) as total from pab_collector_status where instance <> 'selftest'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^beating$/",
+                      "values": false
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none",
+                    "textMode": "value"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "red",
+                            "value": null
+                          },
+                          {
+                            "color": "#EAB839",
+                            "value": 1
+                          },
+                          {
+                            "color": "green",
+                            "value": 6
+                          }
+                        ]
+                      }
+                    },
+                    "overrides": []
+                  }
+                },
+                {
+                  "id": 2,
+                  "type": "stat",
+                  "title": "Oldest heartbeat",
+                  "gridPos": {
+                    "x": 6,
+                    "y": 0,
+                    "w": 6,
+                    "h": 4
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select extract(epoch from now() - min(last_beat)) as age from pab_collector_status where instance <> 'selftest'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "",
+                      "values": false
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "unit": "s",
+                      "decimals": 0,
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": null
+                          },
+                          {
+                            "color": "#EAB839",
+                            "value": 120
+                          },
+                          {
+                            "color": "red",
+                            "value": 600
+                          }
+                        ]
+                      }
+                    },
+                    "overrides": []
+                  }
+                },
+                {
+                  "id": 3,
+                  "type": "stat",
+                  "title": "Rows collected, all time",
+                  "gridPos": {
+                    "x": 12,
+                    "y": 0,
+                    "w": 12,
+                    "h": 4
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select sum(total_rows) as rows from pab_collector_status where instance <> 'selftest'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "",
+                      "values": false
+                    },
+                    "colorMode": "none",
+                    "graphMode": "none"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "unit": "short",
+                      "decimals": 0,
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      }
+                    },
+                    "overrides": []
+                  }
+                },
+                {
+                  "id": 4,
+                  "type": "stat",
+                  "title": "Heartbeat age by collector",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 4,
+                    "w": 24,
+                    "h": 5
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "description": "Seconds since each collector last wrote its heartbeat. Green under 2 minutes, amber under 10, red beyond.",
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select instance, extract(epoch from now() - last_beat) as age from pab_collector_status where instance <> 'selftest' order by instance"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^age$/",
+                      "values": true
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none",
+                    "textMode": "value_and_name",
+                    "orientation": "vertical"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "unit": "s",
+                      "decimals": 0,
+                      "displayName": "${__data.fields.instance}",
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": null
+                          },
+                          {
+                            "color": "#EAB839",
+                            "value": 120
+                          },
+                          {
+                            "color": "red",
+                            "value": 600
+                          }
+                        ]
+                      }
+                    },
+                    "overrides": []
+                  }
+                },
+                {
+                  "id": 5,
+                  "type": "timeseries",
+                  "title": "Ingest rate by collector (rows/min, 10-min buckets)",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 9,
+                    "w": 24,
+                    "h": 9
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "description": "From gf.collector_samples: pg_cron snapshots pab_collector_status every minute; this is the growth in total_rows.",
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "time_series",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "with d as (\n  select sampled_at, instance,\n         greatest(total_rows - lag(total_rows) over (partition by instance order by sampled_at), 0) as delta\n  from gf.collector_samples\n  where $__timeFilter(sampled_at) and instance <> 'selftest'\n)\nselect $__timeGroupAlias(sampled_at, '10m'), instance as metric, sum(delta) / 10.0 as value\nfrom d where delta is not null\ngroup by 1, 2 order by 1"
+                    }
+                  ],
+                  "options": {
+                    "legend": {
+                      "displayMode": "table",
+                      "placement": "right",
+                      "calcs": [
+                        "mean",
+                        "max"
+                      ]
+                    },
+                    "tooltip": {
+                      "mode": "multi"
+                    }
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "unit": "short",
+                      "custom": {
+                        "drawStyle": "line",
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "spanNulls": true
+                      }
+                    },
+                    "overrides": []
+                  }
+                }
+              ]
+            }
         quotes:
           json: |
             {

@@ -18,9 +18,19 @@ revoke all on schema public from grafana_ro;
 revoke all on all tables in schema public from grafana_ro;
 grant usage on schema public to grafana_ro;
 
+-- Allowed for dashboards. Deliberately NOT granted (decided 2026-11-04): spa_spoons_entries,
+-- spa_poker_packs, pab_pcs_bets, pab_lh_*, and anything holding wallets, money or health data.
+-- pab_xvenue_quotes is 765 MB: dashboards will read a 5-minute view in gf, never the raw table.
 grant select on public.spa_pkms_quotes to grafana_ro;
 drop policy if exists "grafana_ro reads quotes" on public.spa_pkms_quotes;
 create policy "grafana_ro reads quotes" on public.spa_pkms_quotes for select to grafana_ro using (true);
+
+grant select on public.pab_collector_status to grafana_ro;
+drop policy if exists "grafana_ro reads collector status" on public.pab_collector_status;
+create policy "grafana_ro reads collector status" on public.pab_collector_status for select to grafana_ro using (true);
+
+-- pab_measurements: held (2026-11-04). Its notes column carries real P&L and location remarks.
+-- When a measurements dashboard is built, grant a gf view WITHOUT notes, not this table.
 
 -- Supabase grants USAGE on schema `net` (pg_net) to PUBLIC, and PUBLIC holds ALL on its tables:
 -- any login role, grafana_ro included, could read responses and queue outbound HTTP (it can
