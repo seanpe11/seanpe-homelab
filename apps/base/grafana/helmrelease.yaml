@@ -40,6 +40,14 @@ spec:
     envValueFrom:
       GRAFANA_RO_PASSWORD:
         secretKeyRef: { name: grafana-secrets, key: GRAFANA_RO_PASSWORD }
+    env:
+      # Grafana's default CSP template (13.3 defaults.ini) + frame-ancestors, which is what actually
+      # limits who may iframe us now that allow_embedding drops X-Frame-Options. seanpe.io and its
+      # subdomains only - NOT *.pages.dev, which anyone can publish to. Passed as env, not grafana.ini:
+      # the ini parser would treat the ';'s as comments. Verified 2026-11-05: an allowed origin
+      # embeds, any other gets "Refused to frame", and the shared page still renders with CSP on.
+      GF_SECURITY_CONTENT_SECURITY_POLICY_TEMPLATE: >-
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' 'strict-dynamic' $NONCE;object-src 'none';font-src 'self';style-src 'self' 'unsafe-inline' blob:;img-src * data: blob:;base-uri 'self';connect-src 'self' grafana.com *.cartocdn.com ws://$ROOT_PATH wss://$ROOT_PATH;manifest-src 'self';media-src 'none';form-action 'self' $FORM_ACTION_ADDITIONAL_HOSTS;frame-ancestors 'self' https://seanpe.io https://*.seanpe.io;
 
     grafana.ini:
       server:
@@ -51,6 +59,12 @@ spec:
       security:
         cookie_secure: true
         disable_gravatar: true
+        # For embedding shared dashboards in seanpe.io (Cloudflare Pages). Without this Grafana sends
+        # X-Frame-Options: deny and the iframe is blank. Instance-wide, so the CSP frame-ancestors
+        # above is the real limit. A shared dashboard embeds whole: ?viewPanel and ?kiosk are ignored
+        # on /public-dashboards (verified 13.3), so the pattern is one small dashboard per widget.
+        allow_embedding: true
+        content_security_policy: true
       users:
         allow_sign_up: false
       auth.anonymous:
