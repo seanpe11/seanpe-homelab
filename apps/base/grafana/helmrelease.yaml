@@ -111,8 +111,8 @@ spec:
               path: /var/lib/grafana/dashboards/default
     dashboards:
       default:
-        # Widget for the seanpe.io homelab card. Embed at >= 800 px wide x 210 px tall: narrower than
-        # ~790 px and Grafana's mobile layout stacks the four tiles (~700 px tall).
+        # Widget for the seanpe.io homelab card. Embed at >= 800 px wide x 240 px tall (tiles plus the
+        # hardware line): narrower than ~790 px and Grafana's mobile layout stacks the tiles.
         homelab-card:
           json: |
             {
@@ -407,6 +407,62 @@ spec:
                     "overrides": []
                   },
                   "description": "rocinante: minutes with a heartbeat / minutes expected over the last 7 days. Measures the agent reaching the database, a lower bound on uptime."
+                },
+                {
+                  "id": 5,
+                  "type": "stat",
+                  "title": "",
+                  "transparent": true,
+                  "gridPos": {
+                    "x": 0,
+                    "y": 3,
+                    "w": 24,
+                    "h": 1
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "description": "rocinante's CPU, GPU and RAM: model and utilisation at its last heartbeat.",
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "time_series",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select now() as time, 'rocinante \u00b7 ' || coalesce(s.hw, 'no hardware report yet') as line, 0 as value from gf.host_status s where s.host = 'rocinante'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "",
+                      "values": false
+                    },
+                    "colorMode": "none",
+                    "graphMode": "none",
+                    "textMode": "name",
+                    "justifyMode": "center",
+                    "text": {
+                      "titleSize": 13
+                    }
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "displayName": "${__field.labels.line}",
+                      "color": {
+                        "mode": "fixed",
+                        "fixedColor": "text"
+                      }
+                    },
+                    "overrides": []
+                  }
                 }
               ]
             }
@@ -892,12 +948,69 @@ spec:
                   "description": "UP if the host's agent beat within the last 3 minutes. Uptime comes from the host's own boot time."
                 },
                 {
+                  "id": 8,
+                  "type": "stat",
+                  "title": "",
+                  "transparent": true,
+                  "gridPos": {
+                    "x": 0,
+                    "y": 24,
+                    "w": 24,
+                    "h": 2
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "description": "CPU, GPU and RAM: model and current utilisation, from the host's last heartbeat.",
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "time_series",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select now() as time, s.host, coalesce(s.hw, 'no hardware report yet') as hw, 0 as value\nfrom gf.host_status s order by s.host"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "",
+                      "values": false
+                    },
+                    "colorMode": "none",
+                    "graphMode": "none",
+                    "textMode": "name",
+                    "justifyMode": "center",
+                    "orientation": "auto",
+                    "text": {
+                      "titleSize": 14
+                    }
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "displayName": "${__field.labels.hw}",
+                      "color": {
+                        "mode": "fixed",
+                        "fixedColor": "text"
+                      }
+                    },
+                    "overrides": []
+                  }
+                },
+                {
                   "id": 7,
                   "type": "table",
                   "title": "Hosts",
                   "gridPos": {
                     "x": 0,
-                    "y": 24,
+                    "y": 26,
                     "w": 24,
                     "h": 6
                   },

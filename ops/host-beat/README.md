@@ -15,7 +15,15 @@ host-beat.timer (60 s) → host-beat.sh → POST https://db.seanpe.io/rest/v1/rp
 - **Why this path:** it reuses the public API host that already exists. Rejected: a tailnet
   NodePort for Postgres, which would make every password role, superusers included, reachable from
   the tailnet; and the MCP endpoint, which is superuser SQL with no auth.
-- **Runtime:** bash, curl, `/proc`. Nothing to install on a normal Linux host.
+- **Runtime:** bash, curl, `/proc`. Nothing to install on a normal Linux host. Optional:
+  `nvidia-smi` (GPU name and utilisation), else an amdgpu's `gpu_busy_percent` in sysfs, else
+  `lspci` (GPU name only). A host with none of them still beats, with no GPU in its line.
+- **What leaves the host (v2, 2026-11-05):** boot time, uptime, load, memory and root-disk use,
+  plus the hardware line: CPU and GPU **model names**, their utilisation, and total RAM. These
+  show on public dashboards, and Sean cleared exactly these. **Don't add** kernel, OS or package
+  versions, usernames, IPs, MACs, serials, PCI addresses, disk paths or mount names, or process
+  names: anything that narrows a CVE hunt. Ask first. Each run takes about 1 s (two `/proc/stat`
+  reads for CPU use). A v1 agent keeps working: the new RPC parameters have defaults.
 - **Hosts the dashboard expects:** rows in `gf.hosts`. A host with no beats shows red. That's on
   purpose, so pegasus is red until it comes back.
 
