@@ -1,0 +1,12 @@
+# systemd --user unit. Paths use %h so the same file works for any user (Ansible: copy as-is).
+[Unit]
+Description=host-beat: one heartbeat to the seanpe-homelab Pipeline health dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/host-beat/env
+ExecStart=%h/.local/bin/host-beat
+TimeoutStartSec=30
+NoNewPrivileges=yes

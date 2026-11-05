@@ -102,7 +102,7 @@ spec:
             {
               "uid": "pipeline-health",
               "title": "Pipeline health",
-              "description": "Liveness of the prediction-market collectors writing into the homelab Postgres.",
+              "description": "Liveness of the prediction-market collectors and the homelab hosts.",
               "schemaVersion": 41,
               "time": {
                 "from": "now-24h",
@@ -111,12 +111,25 @@ spec:
               "refresh": "1m",
               "panels": [
                 {
-                  "id": 1,
-                  "type": "stat",
-                  "title": "Collectors beating (< 2 min)",
+                  "id": 100,
+                  "type": "row",
+                  "title": "Collectors",
+                  "collapsed": false,
                   "gridPos": {
                     "x": 0,
                     "y": 0,
+                    "w": 24,
+                    "h": 1
+                  },
+                  "panels": []
+                },
+                {
+                  "id": 1,
+                  "type": "stat",
+                  "title": "Collectors on schedule",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 1,
                     "w": 6,
                     "h": 4
                   },
@@ -134,7 +147,7 @@ spec:
                       "format": "table",
                       "rawQuery": true,
                       "editorMode": "code",
-                      "rawSql": "select count(*) filter (where now() - last_beat < interval '2 minutes') as beating, count(*) as total from pab_collector_status where instance <> 'selftest'"
+                      "rawSql": "select count(*) filter (where extract(epoch from now() - c.last_beat) / coalesce(e.expected_interval_s, 60) < 2) as on_schedule from pab_collector_status c\nleft join gf.collector_expectations e using (instance)\nwhere c.instance <> 'selftest'"
                     }
                   ],
                   "options": {
@@ -142,12 +155,14 @@ spec:
                       "calcs": [
                         "lastNotNull"
                       ],
-                      "fields": "/^beating$/",
+                      "fields": "",
                       "values": false
                     },
                     "colorMode": "background",
                     "graphMode": "none",
-                    "textMode": "value"
+                    "textMode": "auto",
+                    "justifyMode": "center",
+                    "orientation": "auto"
                   },
                   "fieldConfig": {
                     "defaults": {
@@ -167,18 +182,21 @@ spec:
                             "value": 6
                           }
                         ]
-                      }
+                      },
+                      "mappings": [],
+                      "noValue": "\u2014"
                     },
                     "overrides": []
-                  }
+                  },
+                  "description": "Collectors whose last heartbeat is within twice their normal interval."
                 },
                 {
                   "id": 2,
                   "type": "stat",
-                  "title": "Oldest heartbeat",
+                  "title": "Most overdue",
                   "gridPos": {
                     "x": 6,
-                    "y": 0,
+                    "y": 1,
                     "w": 6,
                     "h": 4
                   },
@@ -196,7 +214,7 @@ spec:
                       "format": "table",
                       "rawQuery": true,
                       "editorMode": "code",
-                      "rawSql": "select extract(epoch from now() - min(last_beat)) as age from pab_collector_status where instance <> 'selftest'"
+                      "rawSql": "select max(extract(epoch from now() - c.last_beat) / coalesce(e.expected_interval_s, 60)) as overdue from pab_collector_status c\nleft join gf.collector_expectations e using (instance)\nwhere c.instance <> 'selftest'"
                     }
                   ],
                   "options": {
@@ -208,32 +226,63 @@ spec:
                       "values": false
                     },
                     "colorMode": "background",
-                    "graphMode": "none"
+                    "graphMode": "none",
+                    "textMode": "auto",
+                    "justifyMode": "center",
+                    "orientation": "auto"
                   },
                   "fieldConfig": {
                     "defaults": {
-                      "unit": "s",
-                      "decimals": 0,
                       "thresholds": {
                         "mode": "absolute",
                         "steps": [
                           {
-                            "color": "green",
+                            "color": "text",
                             "value": null
-                          },
-                          {
-                            "color": "#EAB839",
-                            "value": 120
-                          },
-                          {
-                            "color": "red",
-                            "value": 600
                           }
                         ]
-                      }
+                      },
+                      "mappings": [
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 0,
+                            "to": 2,
+                            "result": {
+                              "text": "OK",
+                              "color": "green"
+                            }
+                          }
+                        },
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 2,
+                            "to": 10,
+                            "result": {
+                              "text": "LATE",
+                              "color": "#EAB839"
+                            }
+                          }
+                        },
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 10,
+                            "to": 1000000000000.0,
+                            "result": {
+                              "text": "STALE",
+                              "color": "red"
+                            }
+                          }
+                        }
+                      ],
+                      "noValue": "\u2014",
+                      "unit": "none"
                     },
                     "overrides": []
-                  }
+                  },
+                  "description": "The worst collector's heartbeat age, in multiples of its normal interval. OK under 2x, LATE under 10x."
                 },
                 {
                   "id": 3,
@@ -241,7 +290,7 @@ spec:
                   "title": "Rows collected, all time",
                   "gridPos": {
                     "x": 12,
-                    "y": 0,
+                    "y": 1,
                     "w": 12,
                     "h": 4
                   },
@@ -259,7 +308,7 @@ spec:
                       "format": "table",
                       "rawQuery": true,
                       "editorMode": "code",
-                      "rawSql": "select sum(total_rows) as rows from pab_collector_status where instance <> 'selftest'"
+                      "rawSql": "select sum(c.total_rows) as rows from pab_collector_status c\nleft join gf.collector_expectations e using (instance)\nwhere c.instance <> 'selftest'"
                     }
                   ],
                   "options": {
@@ -271,12 +320,13 @@ spec:
                       "values": false
                     },
                     "colorMode": "none",
-                    "graphMode": "none"
+                    "graphMode": "none",
+                    "textMode": "auto",
+                    "justifyMode": "center",
+                    "orientation": "auto"
                   },
                   "fieldConfig": {
                     "defaults": {
-                      "unit": "short",
-                      "decimals": 0,
                       "thresholds": {
                         "mode": "absolute",
                         "steps": [
@@ -285,7 +335,10 @@ spec:
                             "value": null
                           }
                         ]
-                      }
+                      },
+                      "mappings": [],
+                      "noValue": "\u2014",
+                      "unit": "short"
                     },
                     "overrides": []
                   }
@@ -293,10 +346,10 @@ spec:
                 {
                   "id": 4,
                   "type": "stat",
-                  "title": "Heartbeat age by collector",
+                  "title": "Heartbeat by collector",
                   "gridPos": {
                     "x": 0,
-                    "y": 4,
+                    "y": 5,
                     "w": 24,
                     "h": 5
                   },
@@ -304,7 +357,6 @@ spec:
                     "type": "grafana-postgresql-datasource",
                     "uid": "supabase-pg"
                   },
-                  "description": "Seconds since each collector last wrote its heartbeat. Green under 2 minutes, amber under 10, red beyond.",
                   "targets": [
                     {
                       "refId": "A",
@@ -312,10 +364,10 @@ spec:
                         "type": "grafana-postgresql-datasource",
                         "uid": "supabase-pg"
                       },
-                      "format": "table",
+                      "format": "time_series",
                       "rawQuery": true,
                       "editorMode": "code",
-                      "rawSql": "select instance, extract(epoch from now() - last_beat) as age from pab_collector_status where instance <> 'selftest' order by instance"
+                      "rawSql": "select now() as time, c.instance, gf.ago(extract(epoch from now() - c.last_beat)) || ' ago' as ago, extract(epoch from now() - c.last_beat) / coalesce(e.expected_interval_s, 60) as value\nfrom pab_collector_status c\nleft join gf.collector_expectations e using (instance)\nwhere c.instance <> 'selftest' order by c.instance"
                     }
                   ],
                   "options": {
@@ -323,39 +375,67 @@ spec:
                       "calcs": [
                         "lastNotNull"
                       ],
-                      "fields": "/^age$/",
-                      "values": true
+                      "fields": "",
+                      "values": false
                     },
                     "colorMode": "background",
                     "graphMode": "none",
                     "textMode": "value_and_name",
-                    "orientation": "vertical"
+                    "justifyMode": "center",
+                    "orientation": "auto"
                   },
                   "fieldConfig": {
                     "defaults": {
-                      "unit": "s",
-                      "decimals": 0,
-                      "displayName": "${__data.fields.instance}",
                       "thresholds": {
                         "mode": "absolute",
                         "steps": [
                           {
-                            "color": "green",
+                            "color": "text",
                             "value": null
-                          },
-                          {
-                            "color": "#EAB839",
-                            "value": 120
-                          },
-                          {
-                            "color": "red",
-                            "value": 600
                           }
                         ]
-                      }
+                      },
+                      "mappings": [
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 0,
+                            "to": 2,
+                            "result": {
+                              "text": "OK",
+                              "color": "green"
+                            }
+                          }
+                        },
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 2,
+                            "to": 10,
+                            "result": {
+                              "text": "LATE",
+                              "color": "#EAB839"
+                            }
+                          }
+                        },
+                        {
+                          "type": "range",
+                          "options": {
+                            "from": 10,
+                            "to": 1000000000000.0,
+                            "result": {
+                              "text": "STALE",
+                              "color": "red"
+                            }
+                          }
+                        }
+                      ],
+                      "noValue": "\u2014",
+                      "displayName": "${__field.labels.instance} \u00b7 ${__field.labels.ago}"
                     },
                     "overrides": []
-                  }
+                  },
+                  "description": "Each collector against its own cadence (most beat every minute, kalshi_wx and pcs_rounds every 5). OK = within 2 intervals, LATE = within 10, STALE beyond."
                 },
                 {
                   "id": 5,
@@ -363,7 +443,7 @@ spec:
                   "title": "Ingest rate by collector (rows/min, 10-min buckets)",
                   "gridPos": {
                     "x": 0,
-                    "y": 9,
+                    "y": 10,
                     "w": 24,
                     "h": 9
                   },
@@ -371,7 +451,7 @@ spec:
                     "type": "grafana-postgresql-datasource",
                     "uid": "supabase-pg"
                   },
-                  "description": "From gf.collector_samples: pg_cron snapshots pab_collector_status every minute; this is the growth in total_rows.",
+                  "description": "Growth in each collector's total row count, sampled every minute.",
                   "targets": [
                     {
                       "refId": "A",
@@ -409,6 +489,266 @@ spec:
                       }
                     },
                     "overrides": []
+                  }
+                },
+                {
+                  "id": 101,
+                  "type": "row",
+                  "title": "Hosts",
+                  "collapsed": false,
+                  "gridPos": {
+                    "x": 0,
+                    "y": 19,
+                    "w": 24,
+                    "h": 1
+                  },
+                  "panels": []
+                },
+                {
+                  "id": 6,
+                  "type": "stat",
+                  "title": "Host status",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 20,
+                    "w": 24,
+                    "h": 4
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "time_series",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select now() as time, s.host,\n       case when (s.last_beat is not null and now() - s.last_beat < make_interval(secs => 3 * s.expected_interval_s)) then 'up ' || gf.ago(s.uptime_s + extract(epoch from now() - s.last_beat))\n            when s.last_beat is null then 'never seen'\n            else 'last seen ' || gf.ago(extract(epoch from now() - s.last_beat)) || ' ago' end as detail,\n       case when (s.last_beat is not null and now() - s.last_beat < make_interval(secs => 3 * s.expected_interval_s)) then 1 else 0 end as value\nfrom gf.host_status s order by s.host"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "",
+                      "values": false
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none",
+                    "textMode": "value_and_name",
+                    "justifyMode": "center",
+                    "orientation": "auto"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      },
+                      "mappings": [
+                        {
+                          "type": "value",
+                          "options": {
+                            "1": {
+                              "text": "UP",
+                              "color": "green"
+                            },
+                            "0": {
+                              "text": "DOWN",
+                              "color": "red"
+                            }
+                          }
+                        }
+                      ],
+                      "noValue": "\u2014",
+                      "displayName": "${__field.labels.host} \u00b7 ${__field.labels.detail}"
+                    },
+                    "overrides": []
+                  },
+                  "description": "UP if the host's agent beat within the last 3 minutes. Uptime comes from the host's own boot time."
+                },
+                {
+                  "id": 7,
+                  "type": "table",
+                  "title": "Hosts",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 24,
+                    "w": 24,
+                    "h": 6
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "with w as (\n  -- window starts at the first beat (the agent didn't exist before), or when the host was added if it never beat\n  select h.host, h.expected_interval_s,\n         greatest(now() - interval '7 days',\n                  coalesce((select min(sampled_at) from gf.host_samples f where f.host = h.host), h.added_at)) as since\n  from gf.hosts h\n), beats as (\n  select w.host, count(distinct date_trunc('minute', x.sampled_at)) as n\n  from w left join gf.host_samples x on x.host = w.host and x.sampled_at >= w.since group by w.host\n), boots as (\n  select host, count(*) filter (where prev is not null and boot_time <> prev) as reboots\n  from (select host, boot_time, lag(boot_time) over (partition by host order by sampled_at) as prev\n        from gf.host_samples where sampled_at > now() - interval '7 days') b group by host\n)\nselect s.host as \"Host\",\n       case when s.last_beat is not null and now() - s.last_beat < make_interval(secs => 3 * s.expected_interval_s) then 1 else 0 end as \"Status\",\n       s.uptime_s + extract(epoch from now() - s.last_beat) as \"Uptime\",\n       s.load1 as \"Load (1 min)\",\n       s.mem_used_pct as \"Memory used\",\n       s.disk_root_pct as \"Root disk used\",\n       least(100, 100.0 * b.n / greatest(1, extract(epoch from now() - w.since) / w.expected_interval_s)) as \"Agent reachability (7 d)\",\n       coalesce(r.reboots, 0) as \"Reboots (7 d)\"\nfrom gf.host_status s join w using (host) join beats b using (host) left join boots r using (host)\norder by s.host"
+                    }
+                  ],
+                  "description": "Agent reachability = minutes with a heartbeat / minutes expected, since the host's first heartbeat (max 7 days). It measures whether the agent reached the database, which is a lower bound on uptime, not uptime itself.",
+                  "options": {
+                    "showHeader": true,
+                    "cellHeight": "sm"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "noValue": "\u2014",
+                      "custom": {
+                        "align": "auto"
+                      }
+                    },
+                    "overrides": [
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Status"
+                        },
+                        "properties": [
+                          {
+                            "id": "mappings",
+                            "value": [
+                              {
+                                "type": "value",
+                                "options": {
+                                  "1": {
+                                    "text": "UP",
+                                    "color": "green"
+                                  },
+                                  "0": {
+                                    "text": "DOWN",
+                                    "color": "red"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "custom.cellOptions",
+                            "value": {
+                              "type": "color-background"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Uptime"
+                        },
+                        "properties": [
+                          {
+                            "id": "unit",
+                            "value": "dtdurations"
+                          }
+                        ]
+                      },
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Load (1 min)"
+                        },
+                        "properties": [
+                          {
+                            "id": "decimals",
+                            "value": 2
+                          }
+                        ]
+                      },
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Memory used"
+                        },
+                        "properties": [
+                          {
+                            "id": "unit",
+                            "value": "percent"
+                          },
+                          {
+                            "id": "decimals",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Root disk used"
+                        },
+                        "properties": [
+                          {
+                            "id": "unit",
+                            "value": "percent"
+                          },
+                          {
+                            "id": "decimals",
+                            "value": 0
+                          },
+                          {
+                            "id": "thresholds",
+                            "value": {
+                              "mode": "absolute",
+                              "steps": [
+                                {
+                                  "color": "text",
+                                  "value": null
+                                },
+                                {
+                                  "color": "#EAB839",
+                                  "value": 85
+                                },
+                                {
+                                  "color": "red",
+                                  "value": 95
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "id": "custom.cellOptions",
+                            "value": {
+                              "type": "color-text"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "matcher": {
+                          "id": "byName",
+                          "options": "Agent reachability (7 d)"
+                        },
+                        "properties": [
+                          {
+                            "id": "unit",
+                            "value": "percent"
+                          },
+                          {
+                            "id": "decimals",
+                            "value": 1
+                          }
+                        ]
+                      }
+                    ]
                   }
                 }
               ]

@@ -1,0 +1,12 @@
+[Unit]
+Description=host-beat every minute
+
+[Timer]
+# Calendar-aligned so each beat lands in its own minute: the dashboard's reachability counts
+# distinct minutes, and a drifting OnUnitActiveSec=60s timer skips one now and then.
+OnCalendar=minutely
+AccuracySec=1s
+RandomizedDelaySec=0
+
+[Install]
+WantedBy=timers.target
