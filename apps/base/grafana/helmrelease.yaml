@@ -111,6 +111,305 @@ spec:
               path: /var/lib/grafana/dashboards/default
     dashboards:
       default:
+        # Widget for the seanpe.io homelab card. Embed at >= 800 px wide x 210 px tall: narrower than
+        # ~790 px and Grafana's mobile layout stacks the four tiles (~700 px tall).
+        homelab-card:
+          json: |
+            {
+              "uid": "homelab-card",
+              "title": "Homelab",
+              "description": "Widget for the seanpe.io homelab card: one row, embedded as an iframe.",
+              "schemaVersion": 41,
+              "time": {
+                "from": "now-24h",
+                "to": "now"
+              },
+              "refresh": "1m",
+              "panels": [
+                {
+                  "id": 1,
+                  "type": "stat",
+                  "title": "Collectors OK",
+                  "gridPos": {
+                    "x": 0,
+                    "y": 0,
+                    "w": 6,
+                    "h": 3
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select count(*) filter (where extract(epoch from now() - c.last_beat) / coalesce(e.expected_interval_s, 60) < 2)\n       || ' / ' || count(*) as shown\nfrom pab_collector_status c left join gf.collector_expectations e using (instance)\nwhere c.instance <> 'selftest'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^shown$/",
+                      "values": false
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none",
+                    "textMode": "value",
+                    "justifyMode": "center"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "noValue": "\u2014",
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      },
+                      "mappings": [
+                        {
+                          "type": "regex",
+                          "options": {
+                            "pattern": "^(\\d+) / \\1$",
+                            "result": {
+                              "color": "green",
+                              "index": 0
+                            }
+                          }
+                        },
+                        {
+                          "type": "regex",
+                          "options": {
+                            "pattern": "^0 / ",
+                            "result": {
+                              "color": "red",
+                              "index": 1
+                            }
+                          }
+                        }
+                      ],
+                      "color": {
+                        "mode": "fixed",
+                        "fixedColor": "#EAB839"
+                      }
+                    },
+                    "overrides": []
+                  },
+                  "description": "Prediction-market collectors whose last heartbeat is within twice their normal interval."
+                },
+                {
+                  "id": 2,
+                  "type": "stat",
+                  "title": "Hosts up",
+                  "gridPos": {
+                    "x": 6,
+                    "y": 0,
+                    "w": 6,
+                    "h": 3
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select count(*) filter (where (s.last_beat is not null and now() - s.last_beat < make_interval(secs => 3 * s.expected_interval_s))) || ' / ' || count(*) as shown from gf.host_status s"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^shown$/",
+                      "values": false
+                    },
+                    "colorMode": "background",
+                    "graphMode": "none",
+                    "textMode": "value",
+                    "justifyMode": "center"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "noValue": "\u2014",
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      },
+                      "mappings": [
+                        {
+                          "type": "regex",
+                          "options": {
+                            "pattern": "^(\\d+) / \\1$",
+                            "result": {
+                              "color": "green",
+                              "index": 0
+                            }
+                          }
+                        },
+                        {
+                          "type": "regex",
+                          "options": {
+                            "pattern": "^0 / ",
+                            "result": {
+                              "color": "red",
+                              "index": 1
+                            }
+                          }
+                        }
+                      ],
+                      "color": {
+                        "mode": "fixed",
+                        "fixedColor": "#EAB839"
+                      }
+                    },
+                    "overrides": []
+                  },
+                  "description": "Homelab hosts whose heartbeat agent reported in the last 3 minutes."
+                },
+                {
+                  "id": 3,
+                  "type": "stat",
+                  "title": "rocinante uptime",
+                  "gridPos": {
+                    "x": 12,
+                    "y": 0,
+                    "w": 6,
+                    "h": 3
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select case when (s.last_beat is not null and now() - s.last_beat < make_interval(secs => 3 * s.expected_interval_s)) then s.uptime_s + extract(epoch from now() - s.last_beat) end as shown\nfrom gf.host_status s where s.host = 'rocinante'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^shown$/",
+                      "values": false
+                    },
+                    "colorMode": "none",
+                    "graphMode": "none",
+                    "textMode": "value",
+                    "justifyMode": "center"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "noValue": "down",
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      },
+                      "unit": "dtdurations"
+                    },
+                    "overrides": []
+                  }
+                },
+                {
+                  "id": 4,
+                  "type": "stat",
+                  "title": "Agent reach (7 d)",
+                  "gridPos": {
+                    "x": 18,
+                    "y": 0,
+                    "w": 6,
+                    "h": 3
+                  },
+                  "datasource": {
+                    "type": "grafana-postgresql-datasource",
+                    "uid": "supabase-pg"
+                  },
+                  "targets": [
+                    {
+                      "refId": "A",
+                      "datasource": {
+                        "type": "grafana-postgresql-datasource",
+                        "uid": "supabase-pg"
+                      },
+                      "format": "table",
+                      "rawQuery": true,
+                      "editorMode": "code",
+                      "rawSql": "select least(100, 100.0 * count(distinct date_trunc('minute', x.sampled_at))\n         / greatest(1, extract(epoch from now() - min(x.sampled_at)) / 60)) as shown\nfrom gf.host_samples x where x.host = 'rocinante' and x.sampled_at > now() - interval '7 days'"
+                    }
+                  ],
+                  "options": {
+                    "reduceOptions": {
+                      "calcs": [
+                        "lastNotNull"
+                      ],
+                      "fields": "/^shown$/",
+                      "values": false
+                    },
+                    "colorMode": "none",
+                    "graphMode": "none",
+                    "textMode": "value",
+                    "justifyMode": "center"
+                  },
+                  "fieldConfig": {
+                    "defaults": {
+                      "noValue": "\u2014",
+                      "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "text",
+                            "value": null
+                          }
+                        ]
+                      },
+                      "unit": "percent",
+                      "decimals": 1
+                    },
+                    "overrides": []
+                  },
+                  "description": "rocinante: minutes with a heartbeat / minutes expected over the last 7 days. Measures the agent reaching the database, a lower bound on uptime."
+                }
+              ]
+            }
         pipeline-health:
           json: |
             {
