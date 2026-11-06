@@ -1,0 +1,11 @@
+# NodePort so the family cluster's ingress-nginx on donnager can reach Jellyfin at 10.77.0.10:30896
+# over incusbr0. Also reachable on the VM's tailnet address; Jellyfin login still applies.
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+spec:
+  type: NodePort
+  selector: { app: jellyfin }
+  ports:
+    - { name: http, port: 8096, targetPort: http, nodePort: 30896 }

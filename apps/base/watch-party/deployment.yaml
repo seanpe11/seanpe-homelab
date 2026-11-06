@@ -1,0 +1,61 @@
+# Jellyfin + SyncPlay for watch parties at https://watch-party.seanpe.io (Sean, 2026-11-06).
+#
+# Path in: router 80/443 → donnager → the FAMILY cluster's ingress-nginx (TLS, cert-manager HTTP-01)
+# → this VM's NodePort 30896 (service.yaml). The Ingress lives in pemily-homelab
+# (apps/family/watch-party/), because that ingress owns donnager's 80/443. Never the cloudflared
+# tunnel: Cloudflare's terms bar serving video through its proxy.
+#
+# Media: files are encoded once for direct play (H.264/AAC MP4) on rocinante and copied in:
+#   scp -o ProxyJump=pemily@donnager <file> ubuntu@10.77.0.10:/srv/media/movies/
+# /srv/media is a plain directory on the VM disk (ubuntu, uid 1000), mounted read-only. A hostPath
+# rather than a PVC so the scp target is a fixed path. Live transcoding is a CPU-only fallback.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  labels: { app: jellyfin }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }      # RWO config volume
+  selector:
+    matchLabels: { app: jellyfin }
+  template:
+    metadata:
+      labels: { app: jellyfin }
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin    # tag pinned in apps/production
+          ports:
+            - { name: http, containerPort: 8096 }
+          env:
+            - { name: JELLYFIN_PublishedServerUrl, value: "https://watch-party.seanpe.io" }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: cache, mountPath: /cache }
+            - { name: media, mountPath: /media, readOnly: true }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { memory: 4Gi }     # VM has 8 GiB, shared with Supabase
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+      volumes:
+        - name: config
+          persistentVolumeClaim: { claimName: jellyfin-config }
+        - name: cache                   # transcode scratch; fallback only
+          emptyDir: { sizeLimit: 15Gi }
+        - name: media
+          hostPath: { path: /srv/media, type: Directory }

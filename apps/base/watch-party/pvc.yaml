@@ -1,0 +1,11 @@
+# Jellyfin's own state: database, users, metadata, images. Media is NOT here (hostPath /srv/media).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi   # a label on local-path, not a quota (see CLAUDE.md)

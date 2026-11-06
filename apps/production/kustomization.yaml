@@ -4,6 +4,7 @@ resources:
   - ../base/seanpe-com
   - ../base/seanpe-api
   - ../base/grafana
+  - ../base/watch-party
 namespace: apps
 
 images:
@@ -12,6 +13,8 @@ images:
     newTag: "v1.0.2"
   - name: seanpe11/seanpe-api
     newTag: "49d9a94"   # seanpe11/seanpe-api@49d9a94 — poker drill pack routes, CORS for the PWA
+  - name: jellyfin/jellyfin
+    newTag: "12.4.20261026-211555"
 
 # Grafana is a HelmRelease, so `images:` can't reach it: pin chart + image here.
 patches:
