@@ -1,0 +1,26 @@
+# Jellyfin's admin login, set through the startup wizard on 2026-11-06 (no pod reads this Secret;
+# it is the record). Read it with:
+#   env SOPS_AGE_KEY_FILE=$HOME/Documents/explore/age.key sops -d apps/base/watch-party/jellyfin-admin.sops.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: jellyfin-admin
+type: Opaque
+stringData:
+    username: ENC[AES256_GCM,data:MH3heQ==,iv:OXMN6giQtW0pdw9NVU9Uc7O04XX4zT1PdZUfDAVa7pY=,tag:ILWY0jLuuBu3U9RbKJxtRA==,type:str]
+    password: ENC[AES256_GCM,data:HSyHuu0005cwMqUJb2SpCrDIG+kwAZbu,iv:NKHPhyUn180WMX3/jEfZ0NFY1rhkhzevglLbbQUbIqQ=,tag:JIhcCOJTM8CY/PPHJUImQQ==,type:str]
+sops:
+    age:
+        - recipient: age134ru89e5tulkzwlltv7mfx8l54m22mehuancqxpr4csz3hcukf4s8mg4cy
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBvY3NHdkUxWndzWk9Ob0hJ
+            MzhtQ2dMVW9zTWhrL0tHZktTRGJKZlg4TG53CjU1ZThicCtxRW95YlB1S1RaOWQ2
+            WEQrVGowMi9UMzFVb0E5QTBJM1pVOWMKLS0tIE9MNWNUc3VqRFlxMnlSelhUOTF5
+            dEpIanF5eFIwbVlEQ2Z5YVg1MENTMzgKiXWP98U7E+CrCG1wk7v3999n0dtQikHf
+            JBD9zF2eYE771/WSEW+CRb8ynXeG4db1IdBaUQL9CDQwBTSV6zO6zQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-11-06T17:36:16Z"
+    mac: ENC[AES256_GCM,data:mQ6YH/f1GeHFmVvDwScjJT5W+jwMpMWVsEq0w2bRq5XLE928dyb4yrTe7T3muUlnq2atVuhSdK5XzNRMeLf9Lw+wOUfCvj4ztfY+xBWE9h6ezP3uXcxFcMO1+5ELhFWemOGT5l+3Ui/bP4T7WPtx30+Qcr1JH4hKNL5QC5CtrLo=,iv:1aVYju4CRR0X2sfwP6YHAHdEnB68M6acTUw9/EKz1TE=,tag:YqlZvkQoXja2gNYs1JOAWA==,type:str]
+    encrypted_regex: ^(data|stringData)$
+    version: 3.11.0
