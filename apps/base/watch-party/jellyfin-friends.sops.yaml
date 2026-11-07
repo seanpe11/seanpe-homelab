@@ -11,6 +11,7 @@ stringData:
     cian: ENC[AES256_GCM,data:Cif5O3G9QD4z6R+4,iv:RynB/UzSAR+mVW3xrk85xP7ATanMd/HZOG1Txg38e9I=,tag:Qqnr2Zso+HnKh2sq9J79+Q==,type:str]
     shelly: ENC[AES256_GCM,data:muQGykLZu9DS8u8N,iv:wy4GM4yQkPWDHD7d7CUbzJKTO5V2Feq5aiUJAWCNpvk=,tag:z8mi9YA39LTsy+X/SElTJg==,type:str]
     icedch4: ENC[AES256_GCM,data:5aLgmmu9koBtwupG,iv:Vq8h0wBdktYUu0pDDCZgjgz/nGNfQAoG5YWQm+0YbaE=,tag:hY5AL4Fc7zYAWOsYsfyv/w==,type:str]
+    buh: ENC[AES256_GCM,data:f3aDuT9QPOZYc9KP,iv:pmoXmYD57wI56lyRGI9Nc1tjyZbzjWNS6ENulrNhQvg=,tag:xOBdgpe7pbEW9CBU1trsrg==,type:str]
 sops:
     age:
         - recipient: age134ru89e5tulkzwlltv7mfx8l54m22mehuancqxpr4csz3hcukf4s8mg4cy
@@ -22,7 +23,7 @@ sops:
             b1JveDRGK3JjSEdCTFFrZjFidTJBRk0KGCYEQzEmDgUIOXVclS+0mRltelAcaipk
             MZ/ppepownE0685eTjbbOT8KHbcjM4K5jhjPIChMd1SXd8CyaIiWFQ==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-11-06T19:51:48Z"
-    mac: ENC[AES256_GCM,data:plE/JzDIrKatm8AcFMzSoYUsELNpOJa9XMn2Dwdvxl3CcbfbOCYcQwydhTPmK4hs+L1cAvVo6ZldikuOlL9KR41ImPDIrG00v4azfQz6VCkR3QOwl7coPHc2LYYZgP2KKv+G7KHwixoRx+T/qqCaWgxcxR6J+sldx6Ku9HqATGA=,iv:c4Wxmaic0abUbGE3k1eSTmttZyFsDu1X8RBAQUKFK14=,tag:euRe6lfZsfYdPhBQkqQPoQ==,type:str]
+    lastmodified: "2026-11-07T01:13:04Z"
+    mac: ENC[AES256_GCM,data:XNUchxpzMfuC/MS/l4n40LgOEHejIMwEwYxP4iTQ2kxQV69IDcjs0z4g2cYObzG8w/6qpMc/h4PtaZWzverl20sc8mK0Z5FbOgASw9PjzSbOrnDMaOC3A59/tbBcINdFuRg1hXs4HJFcJniPUaoZsSLwpIW0whJOR5huScCNaOI=,iv:V8Sw+jWVt8wWWtzGQSxbvHsFSed8i/sNLNA3WmaneVc=,tag:roWYO2ytF4ecmQLGNfagMA==,type:str]
     encrypted_regex: ^(data|stringData)$
     version: 3.11.0
